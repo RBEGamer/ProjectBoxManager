@@ -4,6 +4,10 @@
 
     <link href="./bower_components/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
     <link href="./bower_components/awesomplete/awesomplete.css" rel="stylesheet">
+    <link href="./bower_components/font-awesome/web-fonts-with-css/css/fontawesome.min.css" rel="stylesheet">
+    
+
+
     <link href="/css/cards.css" rel="stylesheet">
 
     <link href="./main.css" rel="stylesheet">
@@ -110,30 +114,16 @@ function parse_project_list_and_gen_tables(_dt){
             console.log("card_tmp_not_loaded");
             return;
         }
-
-
         for (let index = 0; index < _dt.length; index++) {
             const element = _dt[index];
-
             var card_html =  card_html_template_str;
-            card_html= card_html.replace("__%%PROJECT_TITLE%%__",element.title );
-            card_html=card_html.replace("__%%PROJECT_TITLE_BACK%%__",element.title  + "[REV "+element.revision+"]");
+            card_html= card_html.replace("__%%PROJECT_TITLE%%__",element.tile );
+            card_html=card_html.replace("__%%PROJECT_TITLE_BACK%%__",element.tile  + "[REV "+element.revision+"]");
             card_html=card_html.replace("__%%PROJECT_DESC%%__",element.desc );
             card_html=card_html.replace("__%%PROJECT_LINK%%__","/project?id=" + element.project_id );
             card_html=card_html.replace("__%%PROJECT_ICON%%__","/img/np_project_564791_000000.png");
             $("#project_cards_holder").append(card_html);
         }
-
-    
-
-   // CLEAR CARDS
-   //INIT CARD
-   //REPLACE
-   /*
-
-            
-   */
-   //NEXT VARD
 }
 
        
@@ -142,10 +132,7 @@ function parse_project_list_and_gen_tables(_dt){
             console.log("ready!");
         
             $.get( "/card_template.html", function( data ) {
-             //   alert( "Data Loaded: " + data );
                 card_html_template_str = data;
-
-
 
                  var objectConstructor = {}.constructor;
             if (projects_list_str.constructor === objectConstructor) {
@@ -158,13 +145,9 @@ function parse_project_list_and_gen_tables(_dt){
             }
             parse_project_list_and_gen_tables(project_list.projects);
 
-
-
             });
 
-            //FETCH HTML DATA
-
-            //CHECK IF IS ALREADY A JS OBJECT -> EJS else PARSE IT
+            
            
 
 
