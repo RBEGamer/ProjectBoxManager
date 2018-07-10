@@ -1,4 +1,4 @@
-# RWTH_HACK_2018 (4-5.05.2018 Aachen)
+# ProjectBoxManager
 
 
 ![GitHub Logo](/documentation/pbm_logo.png)
@@ -11,7 +11,7 @@
 * simple to use web interface
 * using nfc tag to identifiy project parts and boxes
 * easy next step monitoring
-
+* easy part storage manangement (barcode scanner planned)
 
 ## USED ARCHITECTURE
 
