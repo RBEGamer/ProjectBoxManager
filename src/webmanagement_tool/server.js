@@ -142,7 +142,7 @@ app.get('/', function (req, res) {
 
         if (body.docs != undefined && body.docs != null) {
             res.render('index.ejs', {
-                projects:pro //.projects -> array
+                projects:JSON.stringify({projects:pro})//.projects -> array
             });
         } else {
             res.redirect("/error?r=result_contains_no_project_docs");
