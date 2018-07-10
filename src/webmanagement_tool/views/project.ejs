@@ -1,0 +1,485 @@
+<html lang="en">
+
+<head>
+
+    <link href="./bower_components/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
+    <link href="./bower_components/awesomplete/awesomplete.css" rel="stylesheet">
+
+
+    <link href="./main.css" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="kaps avatar test side">
+    <meta name="author" content="Marcel Ochsendorf">
+    <meta http-equiv="cache-control" content="max-age=0" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>PROJECT BOX MANAGER</title>
+
+
+
+
+</head>
+
+<body class="container">
+
+    <header>
+        <% include ./partials/header %>
+    </header>
+
+
+
+
+
+
+
+
+    <div class="half_transparency_back">
+
+        <div class="row my-12">
+            <div class="col-lg-12" style="height:30px; width:100%; clear:both;"></div>
+        </div>
+        <!-- Heading Row -->
+        <div class="row my-4">
+            <div class="col-lg-8">
+                <div id="map" width="900px" height="400px"></div>
+            </div>
+
+
+
+
+            <!-- /.col-lg-8 -->
+            <div class="col-lg-4">
+                <h3>
+                    <span id="pr_title">PROJECT</span>
+                </h3>
+
+
+                <table class="table table-dark">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col"></th>
+                            <td> </td>
+                        </tr>
+                    </thead>
+                    <tbody id="pr_table_spec_body">
+                    </tbody>
+                </table>
+
+
+               
+            </div>
+        </div>
+        <!-- /.col-md-4 -->
+    </div>
+    <!-- /.row -->
+
+    <!-- Call to Action Well  -->
+    <div class="card text-white bg-secondary my-4 text-center">
+        <div class="card-body">
+            <p class="text-white m-0">CHANGE STATE</p>
+            <div class="btn-group" role="group" aria-label="Basic example">
+                    <button type="button" class="btn btn-success" onclick="state_change('open')">OPEN</button>
+                    <button type="button" class="btn btn-warning" onclick="state_change('waiting_for_step')">WAITING_FOR_STEP</button>
+                    <button type="button" class="btn btn-warning" onclick="state_change('waiting_for_parts')">WAITING_FOR_PARTS</button>
+
+                    <button type="button" class="btn btn-info" onclick="state_change('pending')" >PENDING</button>
+                    <button type="button" class="btn btn-success" onclick="state_change('ready_shipping')">READY_SHIPPING</button>
+                    <button type="button" class="btn btn-danger" onclick="state_change('closed')">CLOSED</button>
+                  </div>
+        </div>
+    </div>
+
+
+
+    <!-- Content Row -->
+    <div class="row">
+        <div class="col-md-5 mb-5">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="card-title">STEP HISTORY</h2>
+                    <p class="card-text">
+                        <div name="sel_room_table" id="sel_room_table"></div>
+                    </p>
+                </div>
+                <div class="card-footer">
+
+                </div>
+            </div>
+        </div>
+
+        <!-- /.col-md-4 -->
+        <div class="col-md-7 mb-7">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="card-title">PARTS</h2>
+
+                    <table class="table table-dark">
+                        <thead>
+                            <tr>
+                                <th scope="col">PID</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Title</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pr_table_body_parts">
+                        </tbody>
+                    </table>
+
+
+                    </tbody>
+                    </table>
+
+                    <span>
+                        <h3>ADD PART</h3>
+                    </span>
+
+                    <table class="table table-dark">
+                        <thead>
+                            <tr>
+                                <th scope="col">+</th>
+                                <th scope="col">PART_ID</th>
+                                <th scope="col">-</th>
+                            </tr>
+                        </thead>
+                        <tbody id="">
+
+                            <tr>
+                                <th scope="row">
+                                    <input type="number" min="1" value="1" id="add_new_part_amount_input">
+                                </th>
+                                <td>
+                                    <input name="add_new_part_item_input" id="add_new_part_item_input" list="part_dataset" />
+                                    <datalist id="part_dataset"></datalist>
+                                </td>
+                                <td>
+                                    <input type="button" class="btn btn-success" onclick="add_part_to_project()" value="ADD" />
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+
+                    </tbody>
+                    </table>
+
+
+                </div>
+            </div>
+
+
+
+        </div>
+        <!-- /.row -->
+
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+
+
+
+    <footer>
+        <% include ./partials/footer %>
+    </footer>
+
+
+
+
+    <script src="./bower_components/jquery/dist/jquery.js"></script>
+    <script src="./bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type='text/javascript' src='./bower_components/chart.js/dist/Chart.bundle.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    <script type='text/javascript' src='./bower_components/awesomplete/awesomplete.min.js'></script>
+
+
+
+
+    <script>
+        var socket = null;
+
+
+
+        var project_data_str = <%- project_data_str %>;
+        var project_data_str_init = <%- project_data_str %>;
+        var project_data = null; //json parsed data
+
+
+        var partlist_data = null;
+        var awesomplete_part_input = null;
+
+
+
+
+        function timeConverter(UNIX_timestamp, with_time = false) {
+            try {
+                var a = new Date(UNIX_timestamp * 1000);
+                var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                var year = a.getFullYear();
+                var month = months[a.getMonth()];
+                var date = a.getDate();
+                var hour = a.getHours();
+                var min = a.getMinutes();
+                var sec = a.getSeconds();
+                if (with_time) {
+                    return date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec;
+                } else {
+                    return date + ' ' + month + ' ' + year;
+                }
+            } catch (error) {
+                return UNIX_timestamp
+            }
+        }
+
+        function clear_tables() {
+            $("#pr_table_spec_body").html("");
+            $("#pr_table_body_parts").html("");
+            povt_index = 0;
+        }
+        var povt_index = 0; //FIXED OFFSET FOR REQUIRED ITEMS
+        function add_row_to_project_overview_table(_k, _v) {
+            $("#pr_table_spec_body").append("<tr><th scope=\"row\">" + povt_index + "</th><td>" + _k +
+                "</td><td><span id=\"pr_client\">" + _v + "</span></td></tr>");
+            povt_index++;
+        }
+
+        function update_part_amount(_part_id, _amount) {
+            if (project_data == undefined && project_data != null) {
+                return;
+            }
+            var request = {
+                project_id: project_data.pid,
+                part_id: _part_id,
+                amount: _amount
+            }
+            //TODO
+            //send request to increase part amount
+        }
+
+function state_change(_st){
+    socket.emit('request_state_change', {
+                            project_id: project_data_str_init.project_id,
+                            state:_st
+                        });
+
+}
+        function add_part_to_project() {
+            var pid = $("#add_new_part_item_input").val();
+            var am = $("#add_new_part_amount_input").val();
+            //TODO REQUEST SOCK IO
+            socket.emit('request_part_add_part', {
+                project_id: project_data_str_init.project_id,
+                part_id: pid,
+                amount: am
+            });
+        }
+
+        function add_row_to_part_table(_part_arr) {
+            if (_part_arr == undefined || _part_arr == null) {
+                return;
+            }
+            //GET 
+            for (let index = 0; index < _part_arr.length; index++) {
+                var element = _part_arr[index];
+                if (element.purpose == undefined || element.purpose == null) {
+                    element.purpose = "DESC";
+                }
+                if (element.amount <= 0) {
+                    continue;
+                }
+                if (partlist_data != undefined && partlist_data.parts != undefined) {
+                    for (let index = 0; index < partlist_data.parts.length; index++) {
+                        const element_part = partlist_data.parts[index];
+                        if (element_part.part_id == element.pid) {
+                            element.title = element_part.title;
+                            break;
+                        }
+                    }
+                }
+                $("#pr_table_body_parts").append("<tr><th scope=\"row\"><a href=\"/parts?pid=" + element.pid + "\" />" +
+                    element.pid + "</a></th><td>" +
+                    "<input type=\"number\" value=" + element.amount +
+                    " min=\"0\" style=\"width:50px;\" id=\"part_" + element.pid + "\"/>" +
+                    "x <span id=\"part_" + element.pid + "_int\"></span>" +
+                    "</td><td>" +
+                    "<span id=\"pr_client\" title=\"" + element.purpose + "\">" + element.title +
+                    "</span></td></tr>");
+                //TODO BUGGY
+                $("#part_" + element.pid + "").change(function () {
+                    $("#part_" + element.pid + "_int").html("<input id=\"part_" + element.pid +
+                        "_btn\" type=\"button\" value=\"SAVE\"/>");
+                    $("#part_" + element.pid + "_btn").click(function () {
+                        $("#part_" + element.pid + "_int").html("");
+                        var val = $("#part_" + element.pid + "").val();
+                        alert(val);
+
+                        socket.emit('request_part_amount_change', {
+                            project_id: project_data_str_init.project_id,
+                            part_id: element.pid,
+                            amount: val
+                        });
+
+
+                    });
+
+
+                });
+            }
+        }
+
+
+
+
+        function parse_project_data_parts(_dt) {
+            if (_dt == null) {
+                return;
+            }
+
+            add_row_to_part_table(_dt.parts);
+        }
+
+        function parse_project_data_overview_table(_dt) {
+            povt_index = 0;
+            if (_dt == null) {
+                return;
+            }
+
+            if (_dt.tile != undefined && _dt.tile != null) {
+                if (_dt.revision != undefined && _dt.revision != null) {
+                    $("#pr_title").html(_dt.tile.toString() + "<br>[Rev " + _dt.revision.toString() + "]");
+                } else {
+                    $("#pr_title").html(_dt.tile.toString());
+                }
+            }
+
+            if (_dt.created != undefined && _dt.created != null) {
+                add_row_to_project_overview_table("CREATED", timeConverter(_dt.created.toString()));
+            }
+            if (_dt.status != undefined && _dt.status != null) {
+
+                var col = "white";
+                if (_dt.status == "open") {
+                    col = 'green';
+                } else if (_dt.status == "closed") {
+                    col = 'red';
+                } else if (_dt.status == "pending") {
+                    col = 'yellow';
+                }
+
+                add_row_to_project_overview_table("STATUS", "<span style='color: " + col + ";'>" + _dt.status.toString() +
+                    "</span>");
+            }
+
+            if (_dt.last_update != undefined && _dt.last_update != null) {
+
+                add_row_to_project_overview_table("LAST_UPDATE", timeConverter(_dt.last_update.toString()));
+            }
+            if (_dt.additional_propteries != undefined && _dt.additional_propteries != null) {
+                for (let index = 0; index < _dt.additional_propteries.length; index++) {
+                    const element = _dt.additional_propteries[index];
+                    add_row_to_project_overview_table(element.key, element.value);
+                }
+            }
+        }
+        $(document).ready(function () {
+            console.log("ready!");
+            //FETCH PARTLIST
+            $.get("/partlist.json", function (data) {
+                console.log("Data Loaded: " + JSON.stringify(data));
+                try {
+                    partlist_data = JSON.parse(data);
+                } catch (error) {
+                    var objectConstructor = {}.constructor;
+                    if (data.constructor === objectConstructor) {
+                        partlist_data = data;
+                    } else {
+                        partlist_data = null;
+                    }
+                    //LOAD TABLE AFTER FETCH
+                    parse_project_data_parts(project_data);
+
+                    var list = document.getElementById('part_dataset');
+                    partlist_data.part_search_list.forEach(function (item) {
+                        var option = document.createElement('option');
+                        option.value = item;
+                        list.appendChild(option);
+                    });
+                }
+                console.log("partlist fatched");
+            });
+
+
+
+
+
+
+            //CHECK IF IS ALREADY A JS OBJECT -> EJS else PARSE IT
+            var objectConstructor = {}.constructor;
+            if (project_data_str.constructor === objectConstructor) {
+                project_data = project_data_str;
+            } else {
+                try {
+                    project_data = JSON.parse(project_data_str);
+                } catch (err) {
+
+                }
+            }
+            parse_project_data_overview_table(project_data);
+
+
+
+            socket = io();
+            socket.emit('add user', {});
+
+            socket.on('response_new_project_data', function (data) {
+
+                clear_tables();
+                var objectConstructor = {}.constructor;
+                if (project_data_str.constructor === objectConstructor) {
+                    project_data = data;
+                } else {
+                    try {
+                        project_data = JSON.parse(data);
+                    } catch (err) {
+
+                    }
+                }
+                parse_project_data_overview_table(project_data.project_data_str);
+
+
+                if (partlist_data != undefined && partlist_data != null) {
+                    parse_project_data_parts(project_data.project_data_str);
+                }
+
+            });
+
+
+            setInterval(function () {
+                socket.emit('request_new_project_data', {
+                    project_id: project_data_str_init.project_id
+                });
+            }, 3000);
+
+
+
+
+
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "emma_twitter_bot_bower",
+  "authors": [
+    "Marcel Ochsendorf <marcel.ochsendorf@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "bootstrap4#^4.1.1",
+    "chart.js": "^2.7.2",
+    "jquery": "^3.3.1"
+  }
+}

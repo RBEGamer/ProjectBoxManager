@@ -1,0 +1,10 @@
+{
+    "mode": "dev",
+
+
+
+    "couchdb_url":"http://localhost:5984",
+    "couchdb_db_name_projects":"project_box_manager_projects",
+    "couchdb_db_name_parts":"project_box_manager_parts"
+
+}
