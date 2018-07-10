@@ -113,17 +113,59 @@ readFiles('./public/img/part_icons', '/img/part_icons', function (filename, cont
 
 app.get('/', function (req, res) {
     sess = req.session;
-    res.render('index.ejs', {
-        key: req.query.key,
-        err: 0
+
+
+    var q = {
+        "selector": {
+            "_id": {
+                "$gt": null
+            },
+        }
+    };
+    pbm_db_projects.find(q, (err, body, header) => {
+        if (err) {
+            console.log('Error thrown: ', err.message);
+            res.redirect("/error?r=db_query_error_project_find");
+            return;
+        }
+        if(body.docs.length <= 0){
+            console.log('Error thrown: no projects found');
+            res.redirect("/error?r=no_project");
+        }
+        var project_doc = body.docs[0];
+        var pro = [];
+
+        for (let index = 0; index < body.docs.length; index++) {
+            const element = body.docs[index];
+            pro.push(element);
+        }
+
+        if (body.docs != undefined && body.docs != null) {
+            res.render('index.ejs', {
+                projects:pro //.projects -> array
+            });
+        } else {
+            res.redirect("/error?r=result_contains_no_project_docs");
+        }
+
+
+
+    });
+
+
+
+   
+});
+app.get('/error', function (req, res) {
+    sess = req.session;
+    res.render('error.ejs', {
+        err:req.query.r
     });
 });
 
 
 
-
 app.get('/partlist.json', function (req, res) {
-
     var q = {
         "selector": {
             "_id": {
@@ -136,8 +178,6 @@ app.get('/partlist.json', function (req, res) {
             console.log('Error thrown: ', err.message);
             return;
         }
-
-
         var arr = [];
         var arr_keyword = [];
         if (body.docs.length > 0) {
@@ -156,46 +196,55 @@ app.get('/partlist.json', function (req, res) {
             part_search_list: arr_keyword
         };
         res.json(part_data);
-
-
     });
+});
 
 
 
+app.get('/part', function (req, res) {
+    sess = req.session;
+
+    if(req.query.id == undefined || req.query.id == null || req.query.id == ""){
+        res.redirect("/error?r=no_part_id_given");
+    }
+    res.render('part.ejs', {
+        pid:req.query.id
+    });
 });
 
 
 app.get('/project', function (req, res) {
     sess = req.session;
 
-
-
-
     var q = {
         "selector": {
             "_id": {
                 "$gt": null
             },
-            "project_id": req.query.id || "1337"
+            "project_id": req.query.id
         }
     };
     pbm_db_projects.find(q, (err, body, header) => {
         if (err) {
             console.log('Error thrown: ', err.message);
+            res.redirect("/error?r=db_query_error_project_find");
             return;
         }
-
+        if(body.docs.length <= 0){
+            console.log('Error thrown: no projects found');
+            res.redirect("/error?r=no_project_with_this_id_found");
+        }
         var project_doc = body.docs[0];
 
 
 
         if (body.docs != undefined && body.docs != null) {
             res.render('project.ejs', {
-                pid: req.query.id || "1337",
+                pid: req.query.id,
                 project_data_str: JSON.stringify(body.docs[0])
             });
         } else {
-            res.redirect("/");
+            res.redirect("/error?r=result_contains_no_project_docs");
         }
 
 
