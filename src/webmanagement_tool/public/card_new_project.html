@@ -1,0 +1,45 @@
+<div class="col-xs-12 col-sm-6 col-md-4">
+    <div class="image-flip" ontouchstart="this.classList.toggle('hover');">
+        <div class="mainflip">
+            <div class="frontside">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <p>
+                            <img class=" img-fluid" src="/img/np_create_472135_295817.png" alt="card image">
+                        </p>
+                        <h4 class="card-title">NEW PROJECT</h4>
+                        <p class="card-text">ADD A NEW PROJECT</p>
+
+                    </div>
+                </div>
+            </div>
+            <div class="backside">
+                <div class="card">
+                    <div class="card-body text-center mt-4">
+                        <h4 class="card-title">NEW PROJECT</h4>
+
+                        <form action="/create_project" method="POST">
+                            <div class="form-group">
+                                <label for="project_name">PROJECT NAME</label>
+                                <input type="text" class="form-control" id="project_name" name="project_name" aria-describedby="emailHelp" placeholder="Name" required>
+                                <small id="emailHelp" class="form-text text-muted">The name of the Project</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="project_desc">Short Project Description</label>
+<textarea class="form-control" id="project_desc" name="project_desc" rows="3" placeholder="A short description" required></textarea>
+                            </div>
+                            
+                           
+                           <div id="np_sub">
+                                
+                           </div>
+                           
+                        </form>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

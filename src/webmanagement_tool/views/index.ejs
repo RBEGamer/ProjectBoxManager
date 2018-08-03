@@ -5,11 +5,7 @@
     <link href="./bower_components/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
     <link href="./bower_components/awesomplete/awesomplete.css" rel="stylesheet">
     <link href="./bower_components/font-awesome/web-fonts-with-css/css/fontawesome.min.css" rel="stylesheet">
-    
-
-
     <link href="/css/cards.css" rel="stylesheet">
-
     <link href="./main.css" rel="stylesheet">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -21,10 +17,6 @@
     <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
     <meta http-equiv="pragma" content="no-cache" />
     <title>PROJECT BOX MANAGER</title>
-
-
-
-
 </head>
 
 <body class="container">
@@ -32,29 +24,9 @@
     <header>
         <% include ./partials/header %>
     </header>
-
-
-
-
-
-
-
-
-        <h5 class="section-title h1">PROJECTS</h5>
-        <div class="row" id="project_cards_holder">
-        </div>
-
-
-
-
-
-
-   
-
-
-    <footer>
-        <% include ./partials/footer %>
-    </footer>
+    <h5 class="section-title h1">PROJECTS</h5>
+    <div class="row" id="project_cards_holder">
+    </div>
 
 
 
@@ -71,17 +43,14 @@
     <script>
         var socket = null;
 
-
-
-        var projects_list_str= <%- projects %>;
+        var projects_list_str = <%- projects %>;
         var projects_list_str_init = <%- projects %>;
-        var project_list = null; 
+        var project_list = null;
         var card_html_template_str = "";
-
-       
-
+        var card_new_project_str = "";
 
 
+        var hide_closed_projects = true;
 
         function timeConverter(UNIX_timestamp, with_time = false) {
             try {
@@ -103,53 +72,108 @@
             }
         }
 
-        
 
 
 
-function parse_project_list_and_gen_tables(_dt){
-    //TODO 
-    $("project_cards_holder").html("");
-        if(card_html_template_str == ""){
-            console.log("card_tmp_not_loaded");
-            return;
-        }
-        for (let index = 0; index < _dt.length; index++) {
-            const element = _dt[index];
-            var card_html =  card_html_template_str;
-            card_html= card_html.replace("__%%PROJECT_TITLE%%__",element.tile );
-            card_html=card_html.replace("__%%PROJECT_TITLE_BACK%%__",element.tile  + "[REV "+element.revision+"]");
-            card_html=card_html.replace("__%%PROJECT_DESC%%__",element.desc );
-            card_html=card_html.replace("__%%PROJECT_LINK%%__","/project?id=" + element.project_id );
-            card_html=card_html.replace("__%%PROJECT_ICON%%__","/img/np_project_564791_000000.png");
-            $("#project_cards_holder").append(card_html);
-        }
-}
 
-       
-        
-        $(document).ready(function () {
-            console.log("ready!");
-        
-            $.get( "/card_template.html", function( data ) {
-                card_html_template_str = data;
-
-                 var objectConstructor = {}.constructor;
-            if (projects_list_str.constructor === objectConstructor) {
-                project_list = projects_list_str;
-            } else {
-                try {
-                    project_list = JSON.parse(projects_list_str);
-                } catch (err) {
-                }
+        function parse_project_list_and_gen_tables(_dt) {
+            //TODO 
+            $("project_cards_holder").html("");
+            if (card_html_template_str == "") {
+                console.log("card_tmp_not_loaded");
+                return;
             }
-            parse_project_list_and_gen_tables(project_list.projects);
+            for (let index = 0; index < _dt.length; index++) {
+                const element = _dt[index];
 
-            });
+                if (hide_closed_projects && element.status != undefined && (element.status == "closed" || element.status ==
+                        -1)) {
+                    continue;
+                }
+                var card_html = card_html_template_str;
+                card_html = card_html.replace("__%%PROJECT_TITLE%%__", element.tile);
+                card_html = card_html.replace("__%%PROJECT_TITLE_BACK%%__", element.tile + "[REV " + element.revision +
+                    "]");
+                card_html = card_html.replace("__%%PROJECT_DESC%%__", element.desc);
+                card_html = card_html.replace("__%%PROJECT_LINK%%__", "/project?id=" + element.project_id);
+                card_html = card_html.replace("__%%PROJECT_DELETE%%__", "/project_delete?id=" + element.project_id);
+                card_html = card_html.replace("__%%PROJECT_ICON%%__", "/img/np_project_564791_000000.png");
+                $("#project_cards_holder").append(card_html);
+
+
+
+
+            }
+            //ADD NEW PROJECT CARD
+            if (card_new_project_str != "") {
+                $("#project_cards_holder").append(card_new_project_str);
+
+                //SHOW SUBMIT BUTTON ONLY IF ALL FIELDS ARE FILLED
+                 $("#project_name").on('change keydown paste input', function () {
+                    if ($("#project_name").val() != "" && $("#project_desc").val() != "") {
+                        $("#np_sub").html("<button type=\"submit\" class=\"btn btn-primary\">Submit</button>");
+                    } else {
+                        $("#np_sub").html("");
+                    }
+                });
+                $("#project_desc").on('change keydown paste input', function () {
+                    if ($("#project_name").val() != "" && $("#project_desc").val() != "") {
+                        $("#np_sub").html("<button type=\"submit\" class=\"btn btn-primary\">Submit</button>");
+                    } else {
+                        $("#np_sub").html("");
+                    }
+                });
+            }
+
 
             
-           
 
+        }
+
+
+
+
+
+        $(document).ready(function () {
+
+
+
+
+
+
+        //  <button type="submit" class="btn btn-primary">Submit</button>
+
+            console.log("ready!");
+
+            $.get("/card_new_project.html", function (data_tmpl) {
+                card_new_project_str = data_tmpl;
+                //var card_html = card_new_project_str.replace("__%%PROJECT_TITLE%%__", element.tile);
+
+
+
+                $.get("/card_template.html", function (data) {
+                    card_html_template_str = data;
+
+                    var objectConstructor = {}.constructor;
+                    if (projects_list_str.constructor === objectConstructor) {
+                        project_list = projects_list_str;
+                    } else {
+                        try {
+                            project_list = JSON.parse(projects_list_str);
+                        } catch (err) {}
+                    }
+
+                    parse_project_list_and_gen_tables(project_list.projects);
+
+
+
+                   
+
+
+                });
+
+                // $("#project_cards_holder").append(card_new_project_str); });
+            });
 
 
             socket = io();

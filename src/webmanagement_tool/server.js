@@ -72,11 +72,7 @@ nano.db.create(config.couchdb_db_name_parts, function () {
 
 
 
-// CREATE PART ICON LIST
-
-
-
-
+// CREATES A LIST OF ALL INCONS INCL. NAME AND FILEPATH
 function readFiles(dirname, dirname_webserver, onFileContent, onError) {
     fs.readdir(dirname, function (err, filenames) {
         if (err) {
@@ -110,11 +106,9 @@ readFiles('./public/img/part_icons', '/img/part_icons', function (filename, cont
 
 
 
-
+//SHOWS ALL PROJECTS AT THE INDEX HTML
 app.get('/', function (req, res) {
     sess = req.session;
-
-
     var q = {
         "selector": {
             "_id": {
@@ -130,7 +124,7 @@ app.get('/', function (req, res) {
         }
         if(body.docs.length <= 0){
             console.log('Error thrown: no projects found');
-            res.redirect("/error?r=no_project");
+            res.redirect("/error?r=no_projects_create_a_new_one");
         }
         var project_doc = body.docs[0];
         var pro = [];
@@ -147,9 +141,6 @@ app.get('/', function (req, res) {
         } else {
             res.redirect("/error?r=result_contains_no_project_docs");
         }
-
-
-
     });
 
 
@@ -228,11 +219,14 @@ app.get('/project', function (req, res) {
         if (err) {
             console.log('Error thrown: ', err.message);
             res.redirect("/error?r=db_query_error_project_find");
+            res.finished = true;
             return;
         }
         if(body.docs.length <= 0){
             console.log('Error thrown: no projects found');
             res.redirect("/error?r=no_project_with_this_id_found");
+            res.finished = true;
+            return;
         }
         var project_doc = body.docs[0];
 
@@ -243,8 +237,10 @@ app.get('/project', function (req, res) {
                 pid: req.query.id,
                 project_data_str: JSON.stringify(body.docs[0])
             });
+            res.finished = true;
         } else {
             res.redirect("/error?r=result_contains_no_project_docs");
+            res.finished = true;
         }
 
 
@@ -256,6 +252,21 @@ app.get('/project', function (req, res) {
 
 
 
+//-> creates a new project and redirect it to the new project page /project id=123 if failed error page
+//< form action = "/create_project"
+//method = "POST" >
+app.post('/create_project', function (req, res) {
+    sess = req.session;
+
+    if (req.body.project_name == undefined || req.body.project_desc == undefined || req.body.project_name == null || req.body.project_desc == null) {
+        res.redirect("/error?r=project.desc_or_project_name not set in request");
+        res.finished = true;
+        return;
+    }
+    res.redirect("/project?id=xxx");
+    res.finished = true;
+    return;
+});
 
 
 
@@ -285,6 +296,19 @@ io.on('connection', (socket) => {
                         //project_update
                         
      */
+
+
+
+
+     /*
+
+
+     - > wenn neues project geadded sende an project_update alle projecte s. get /
+     */
+     
+
+     
+
     socket.on('request_part_add_part', (username) => {
         //project_id
         //
@@ -323,7 +347,7 @@ io.on('connection', (socket) => {
                 });
 
             } else {
-                res.redirect("/");
+           //    throw;
             }
 
 
