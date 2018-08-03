@@ -22,9 +22,17 @@
                         </a>
                         <br>
                         <br>
-                        <a href='__%%PROJECT_DELETE%%__'>
-                            <button type="button" class="btn btn-warning">DELETE_PROJECT</button>
+                        <a href='__%%PROJECT_BARCODE%%__'>
+                            <button type="button" class="btn btn-info">DOWNLOAD BARCODE LABEL</button>
                         </a>
+                        <br>
+                        <br>
+
+                        <form action="/project_delete" method="post">
+                            <input type="hidden" name="pid" value="__%%PROJECT_ID%%__"/>
+                            <button type="submit" class="btn btn-warning">DELETE_PROJECT</button>
+                        </form>
+                        
 
 
                     </div>

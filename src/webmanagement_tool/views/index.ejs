@@ -5,6 +5,11 @@
     <link href="./bower_components/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
     <link href="./bower_components/awesomplete/awesomplete.css" rel="stylesheet">
     <link href="./bower_components/font-awesome/web-fonts-with-css/css/fontawesome.min.css" rel="stylesheet">
+
+
+  
+
+
     <link href="/css/cards.css" rel="stylesheet">
     <link href="./main.css" rel="stylesheet">
     <meta charset="utf-8">
@@ -96,7 +101,7 @@
                     "]");
                 card_html = card_html.replace("__%%PROJECT_DESC%%__", element.desc);
                 card_html = card_html.replace("__%%PROJECT_LINK%%__", "/project?id=" + element.project_id);
-                card_html = card_html.replace("__%%PROJECT_DELETE%%__", "/project_delete?id=" + element.project_id);
+                card_html = card_html.replace("__%%PROJECT_ID%%__", "" + element.project_id);
                 card_html = card_html.replace("__%%PROJECT_ICON%%__", "/img/np_project_564791_000000.png");
                 $("#project_cards_holder").append(card_html);
 

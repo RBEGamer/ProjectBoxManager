@@ -16,7 +16,8 @@ var got = require('got');
 var randomstring = require("randomstring");
 var nano = require('nano')(config.couchdb_url);
 var fs = require('fs');
-
+var barcode = require('barcode');
+var sanitizer = require('sanitizer');
 var port = process.env.PORT || config.webserver_default_port || 3000;
 
 //----------------------------- EXPRESS APP SETUP ------------------------------------------//
@@ -108,7 +109,6 @@ readFiles('./public/img/part_icons', '/img/part_icons', function (filename, cont
 
 //SHOWS ALL PROJECTS AT THE INDEX HTML
 app.get('/', function (req, res) {
-    sess = req.session;
     var q = {
         "selector": {
             "_id": {
@@ -131,6 +131,12 @@ app.get('/', function (req, res) {
 
         for (let index = 0; index < body.docs.length; index++) {
             const element = body.docs[index];
+
+
+            //SKIP DELETED DOCS
+            if(element.deleted != undefined && element.deleted){
+                continue;
+            }
             pro.push(element);
         }
 
@@ -148,9 +154,8 @@ app.get('/', function (req, res) {
    
 });
 app.get('/error', function (req, res) {
-    sess = req.session;
     res.render('error.ejs', {
-        err:req.query.r
+        err: sanitizer.sanitize(req.query.r)
     });
 });
 
@@ -193,26 +198,24 @@ app.get('/partlist.json', function (req, res) {
 
 
 app.get('/part', function (req, res) {
-    sess = req.session;
 
-    if(req.query.id == undefined || req.query.id == null || req.query.id == ""){
+    if (req.query.id == undefined || req.query.id == null || sanitizer.sanitize(req.query.id) == ""){
         res.redirect("/error?r=no_part_id_given");
     }
+    //TODO GET PART FROM DB
     res.render('part.ejs', {
-        pid:req.query.id
+        pid: sanitizer.sanitize(req.query.id)
     });
 });
 
 
 app.get('/project', function (req, res) {
-    sess = req.session;
-
     var q = {
         "selector": {
             "_id": {
                 "$gt": null
             },
-            "project_id": req.query.id
+            "project_id": sanitizer.sanitize( req.query.id)
         }
     };
     pbm_db_projects.find(q, (err, body, header) => {
@@ -228,14 +231,22 @@ app.get('/project', function (req, res) {
             res.finished = true;
             return;
         }
-        var project_doc = body.docs[0];
+      
 
 
 
         if (body.docs != undefined && body.docs != null) {
+            var project_doc = body.docs[0];
+
+            if (project_doc.deleted){
+                res.redirect("/error?r=project_was_deleted");
+                res.finished = true;
+                return;
+            }
+
             res.render('project.ejs', {
-                pid: req.query.id,
-                project_data_str: JSON.stringify(body.docs[0])
+                pid: sanitizer.sanitize(req.query.id),
+                project_data_str: JSON.stringify(project_doc)
             });
             res.finished = true;
         } else {
@@ -250,23 +261,179 @@ app.get('/project', function (req, res) {
 });
 
 
+function generate_step_id(_array_len){
 
 
+    return String(_array_len) + "-" +randomstring.generate({
+        length: 7,
+        charset: 'abcdefghijklmnopqrstuvwxyz'
+    });
+}
+
+
+//seperate function to use in a barcode system ean13 system
+function generate_project_id() {
+    return randomstring.generate({
+        length: 13,
+        charset: String(Math.round(new Date().getTime() / 1000))
+    });
+}
+
+var project_db_entry_template = {
+    project_id: "1337",
+    tile: "Patient Service Signal",
+    desc: "A singla light for the avatar state",
+    status: "open",
+    revision: "0",
+    created: null,
+    last_update: null,
+    deleted: false,
+    file_storage: [
+        
+    ],
+    additional_propteries: [
+        
+    ],
+    parts: [
+       
+    ],
+    step_history: [
+        
+    ]
+};
+
+var project_db_entry_template_step_history = {
+    id: "0",
+    title: "Project was created",
+    desc: "---",
+    timestamp: 1531152389
+};
 //-> creates a new project and redirect it to the new project page /project id=123 if failed error page
 //< form action = "/create_project"
 //method = "POST" >
 app.post('/create_project', function (req, res) {
     sess = req.session;
 
-    if (req.body.project_name == undefined || req.body.project_desc == undefined || req.body.project_name == null || req.body.project_desc == null) {
+    if (req.body.project_name == undefined || req.body.project_desc == undefined || sanitizer.sanitize(req.body.project_name) == "" || sanitizer.sanitize(req.body.project_desc) == "") {
         res.redirect("/error?r=project.desc_or_project_name not set in request");
         res.finished = true;
         return;
     }
-    res.redirect("/project?id=xxx");
-    res.finished = true;
+
+
+    //generate a pid
+    var pid = uuidv1();
+    //pid = String(pid).replace("-","");
+    var ptpl = project_db_entry_template;
+    ptpl._id = pid;
+    ptpl.project_id = generate_project_id();
+
+    ptpl.tile = sanitizer.sanitize(req.body.project_name);
+    ptpl.desc = sanitizer.sanitize(req.body.project_desc);
+
+
+    ptpl.created = Math.round(new Date().getTime() / 1000);
+    ptpl.last_update = Math.round(new Date().getTime() / 1000);
+    ptpl._id = uuidv1();
+    var step_tpl = project_db_entry_template_step_history;
+    step_tpl.timestamp = ptpl.last_update;
+    step_tpl.id = generate_step_id(0);
+    ptpl.step_history.push(step_tpl);
+
+    pbm_db_projects.insert(ptpl, function (err, body) {
+        if (err){
+            console.log(body);
+            res.redirect("/error?r=db insert failed please check your db");
+            res.finished = true;
+            return;
+        }
+        console.log(body)
+        res.redirect("/project?id=" + pid + "");
+        res.finished = true;    
+    });
+
     return;
 });
+
+
+
+app.post('/project_delete', function (req, res) {
+   
+   
+    if (req.body.pid == undefined || sanitizer.sanitize(req.body.pid) == "" ) {
+        res.redirect("/error?r=pid_not_set_in_request");
+        res.finished = true;
+        return;
+    }
+
+
+    var q = {
+        "selector": {
+            "_id": {
+                "$gt": null
+            },
+            "project_id": sanitizer.sanitize(req.body.pid)
+        }
+    };
+    pbm_db_projects.find(q, (err, body, header) => {
+        if (err) {
+            console.log('Error thrown: ', err.message);
+            res.redirect("/error?r=db_query_error_project_find_project_delete");
+            res.finished = true;
+            return;
+        }
+        if (body.docs.length <= 0) {
+            console.log('Error thrown: no projects found');
+            res.redirect("/error?r=no_project_with_this_id_found_project_delete");
+            res.finished = true;
+            return;
+        }
+        
+
+
+
+        if (body.docs != undefined && body.docs != null) {
+            var project_doc = body.docs[0];
+            project_doc.deleted = true;
+
+            pbm_db_projects.insert(project_doc, function (err, body) {
+                if (err) {
+                    console.log(body);
+                    res.redirect("/error?r=db_insert_failed_please_check_your_db_project_delete");
+                    res.finished = true;
+                    return;
+                }
+                console.log(body)
+                res.redirect("/");
+                res.finished = true;
+
+            })
+
+        } else {
+            res.redirect("/error?r=result_contains_no_project_docs_project_delete");
+            res.finished = true;
+        }
+
+
+
+    });
+
+    
+
+
+    
+
+
+
+
+
+
+
+    //TODO INSERT DB
+
+    return;
+});
+
 
 
 
@@ -323,9 +490,11 @@ io.on('connection', (socket) => {
     });
 
     socket.on('request_new_project_data', (username) => {
+        
         if (username == undefined || username == null || username.project_id == undefined || username.project_id == null) {
             return;
         }
+        username = sanitizer.sanitize(username);
         var q = {
             "selector": {
                 "_id": {
@@ -341,23 +510,13 @@ io.on('connection', (socket) => {
             }
             var project_doc = body.docs[0];
             if (body.docs != undefined && body.docs != null) {
-
                 socket.emit('response_new_project_data', {
                     project_data_str: project_doc
                 });
-
             } else {
            //    throw;
             }
-
-
-
         });
-
-
-
-
-
     });
 
 
