@@ -26,10 +26,10 @@
 
 
     <style>
-        #myInput {
+        #searchInput {
             background-image: url('/img/np_search_1355726_000000.png');
             /* Add a search icon to input */
-            background-position: 10px 12px;
+            background-position: 10px 8px;
             /* Position the search icon */
             background-repeat: no-repeat;
             /* Do not repeat the icon image */
@@ -44,6 +44,29 @@
             margin-bottom: 12px;
             /* Add some space below the input */
         }
+
+        .alert {
+    padding: 20px;
+    background-color: #f4c842;
+    color: white;
+}
+
+.closebtn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.closebtn:hover {
+    color: black;
+}
+
+
     </style>
 </head>
 
@@ -56,7 +79,11 @@
 
 
 
-
+    <div class="row my-12">
+        <div class="col-lg-12" style="height:50px; width:100%; clear:both;">
+            <br>
+        </div>
+    </div>
 
 
     <div class="row my-12">
@@ -65,12 +92,28 @@
         </div>
     </div>
 
+    <div class="row my-12">
+        <div class="col-lg-12" style="height:50px; width:100%; clear:both;">
+            <br>
+        </div>
+    </div>
 
 
     <div class="row" id="part_cards_holder">
     </div>
 
 
+<div class="row my-12">
+    <div class="col-lg-12" style="height:50px; width:100%; clear:both;">
+        <br>
+    </div>
+</div>
+
+
+    <div class="row">
+        <div class="col-lg-4"><h4>PART MESSAGES</h4><div id="part_stock_message"></div></div>
+        <div class="col-lg-8"><h4>ADD A NEW PART</h4></div>
+    </div>
 
 
     <script src="./bower_components/jquery/dist/jquery.js"></script>
@@ -88,10 +131,7 @@
         var projects_list_str = <%- parts %>;
 
         var card_html_template_str = "";
-        var card_new_project_str = "";
 
-
-        var hide_closed_projects = true;
 
         function timeConverter(UNIX_timestamp, with_time = false) {
             try {
@@ -118,26 +158,30 @@
 
         function filter_function() {
             // Declare variables
-            $("part_cards_holder").html("");
+
             var items = projects_list_str.parts;
             var items_filtered = [];
             var input = document.getElementById('searchInput');
             var filter = input.value.toLowerCase();
-
+            //if empty show all
+            if (filter == "") {
+                parse_part_list_and_gen_tables(items_filtered);
+                return;
+            }
 
             // Loop through all list items, and hide those who don't match the search query
             for (i = 0; i < items.length; i++) {
                 //SEARCH FOR TITLE
                 if (!items[i].title) {
                     console.log("item:" + items[i]._id + " has no title attr");
-                    
-                }else{
+
+                } else {
                     if (items[i].title.toLowerCase().indexOf(filter) > -1) {
                         items_filtered.push(items[i]);
                         continue;
                     }
                 }
-               
+
 
                 if (!items[i].keywords) {
                     console.log("item:" + items[i]._id + " has no keyword array");
@@ -151,59 +195,81 @@
                 }
 
             }
-
-
-            parse_project_list_and_gen_tables(items_filtered);
+            parse_part_list_and_gen_tables(items_filtered);
         }
 
 
 
 
-        function parse_project_list_and_gen_tables(_dt) {
-            //TODO 
+        function parse_part_list_and_gen_tables(_dt) {
+
             $("part_cards_holder").html("");
+            document.getElementById("part_cards_holder").textContent = "";
+
+            $("part_stock_message").html("");
+             document.getElementById("part_stock_message").textContent = "";
+            
             if (card_html_template_str == "") {
                 console.log("card_tmp_not_loaded");
                 return;
             }
+
+
+            var stock_message_html ="";
+            var card_html = "";
+            var ul_list_html = "";
+
             for (let index = 0; index < _dt.length; index++) {
                 const element = _dt[index];
-
-
-                var card_html = card_html_template_str;
+                //GET TEMPLATE
+                 card_html = card_html_template_str;
+                 //REPACE TITLES
                 card_html = card_html.replace("__%%PART_TITLE%%__", element.title);
                 card_html = card_html.replace("__%%PART_TITLE%%__", element.title);
 
-
-                var ul_list_html = "";
-                if(element.additional_attributes){
-                    ul_list_html+= "<ul>";
+                //CREATE A SIMPLE LIST WITH ALL ADDITIONAL ATTRIBUTES
+                 ul_list_html = "";
+                if (element.additional_attributes) {
+                    ul_list_html += "<ul>";
                     for (let aaindex = 0; aaindex < element.additional_attributes.length; aaindex++) {
                         const aaelement = element.additional_attributes[aaindex];
-                        if(aaelement.value == ""){
+                        if (aaelement.value == "") {
                             continue;
                         }
-                        ul_list_html += " <li>"+ aaelement.key+":" +aaelement.value+"</li>";
+                        ul_list_html += " <li>" + aaelement.key + " : <b>" + aaelement.value + "</b></li>";
                     }
                     ul_list_html += "</ul>";
                 }
-                
-                    
-                
-
+                //REPLACE OTHER INFORS LIKE DECSCRIPTION AND LINK TO PART PAGE
                 card_html = card_html.replace("__%%PART_DESC%%__", element.desc + "<br>" + ul_list_html);
                 card_html = card_html.replace("__%%PART_LINK%%__", "/part?id=" + element.part_id);
-                card_html = card_html.replace("__%%PROJECT_ID%%__", "" + element.project_id);
-
-                if(element.image_url){
+                card_html = card_html.replace("__%%PART_STOCK%%__", "" + element.stock);
+                //ADD IMAGE IN NULL USE PLACEHOLDER
+                if (element.image_url) {
                     card_html = card_html.replace("__%%PART_ICON%%__", element.image_url);
-                }else{
+                } else {
                     card_html = card_html.replace("__%%PART_ICON%%__", "/img/part_default.png");
                 }
-                
+                //ADD DATASHETT IF URL IS PRESENT
+                if (element.datasheet_url && element.datasheet_url != "") {
+                    card_html = card_html.replace("__%%PART_DATASHEET%%__", "<a href='" + element.datasheet_url + "'><button type='button' class='btn btn-secondary'>SHOW_DATASHEET</button></a>");
+                } else {
+                    card_html = card_html.replace("__%%PART_ICON%%__", "");
+                }
+                //ADD TO DIV
                 $("#part_cards_holder").append(card_html);
 
 
+
+
+                //CREATE STOCK MESSAGES
+                if(element.stock && element.stock <= 1){
+                    stock_message_html = "<div class='alert'> <strong>STOCK ALERT</strong> The Stock count of <a href='/part?id=" + element.part_id+"'>" +element.title+"</a> is low! Please reorder</div>";
+
+                    $("#part_stock_message").append(stock_message_html);
+                }
+               
+                
 
 
             }
@@ -242,32 +308,26 @@
                     } catch (err) { }
                 }
 
-                    parse_project_list_and_gen_tables(project_list.parts);
-
-
-
-
-
-
+                parse_part_list_and_gen_tables(project_list.parts);
             });
 
-           
+
 
 
             socket = io();
-              socket.on('parts_update', function (data) {
-              var objectConstructor = {}.constructor;
-              if (projects_list_str.constructor === objectConstructor) {
-                  projects_list = data;
-                  } else {
-                      try {
-                          projects_list = JSON.parse(data);
-                      } catch (err) {
-            
-                      }
-                  }
-                  parse_project_list_and_gen_tables(projects_list.parts);
-              });
+            socket.on('parts_update', function (data) {
+                var objectConstructor = {}.constructor;
+                if (projects_list_str.constructor === objectConstructor) {
+                    projects_list = data;
+                } else {
+                    try {
+                        projects_list = JSON.parse(data);
+                    } catch (err) {
+
+                    }
+                }
+                parse_part_list_and_gen_tables(projects_list.parts);
+            });
         });
     </script>
 
