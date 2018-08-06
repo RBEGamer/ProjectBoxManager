@@ -101,9 +101,61 @@ function readFiles(dirname, dirname_webserver, onFileContent, onError) {
     });
 }
 var data = {};
-readFiles('./public/img/part_icons', '/img/part_icons', function (filename, content) {}, function (err) {
+readFiles('./public/img/part_icons', '/img/part_icons', function (filename, content) { }, function (err) {
     console.log("[ERR] : cant create part_icons_list.json");
 });
+
+
+
+
+
+app.get('/parts', function (req, res) {
+    var q = {
+        "selector": {
+            "_id": {
+                "$gt": null
+            },
+        }
+    };
+
+    pbm_db_parts.find(q, (err, body, header) => {
+        if (err) {
+            console.log('Error thrown: ', err.message);
+            res.redirect("/error?r=db_query_error_part_find");
+            return;
+        }
+        if (body.docs.length <= 0) {
+            console.log('Error thrown: no projects found');
+            res.redirect("/error?r=no_part_create_a_new_one");
+        }
+        var project_doc = body.docs[0];
+        var pro = [];
+
+        for (let index = 0; index < body.docs.length; index++) {
+            const element = body.docs[index];
+
+
+            //SKIP DELETED DOCS
+            if (element.deleted != undefined && element.deleted) {
+                continue;
+            }
+            pro.push(element);
+        }
+
+        if (body.docs != undefined && body.docs != null) {
+            res.render('partlist.ejs', {
+                parts: JSON.stringify({ parts: pro })//.projects -> array
+            });
+        } else {
+            res.redirect("/error?r=result_contains_no_parts_docs");
+        }
+    });
+
+});
+
+
+
+
 
 
 
@@ -122,7 +174,7 @@ app.get('/', function (req, res) {
             res.redirect("/error?r=db_query_error_project_find");
             return;
         }
-        if(body.docs.length <= 0){
+        if (body.docs.length <= 0) {
             console.log('Error thrown: no projects found');
             res.redirect("/error?r=no_projects_create_a_new_one");
         }
@@ -134,7 +186,7 @@ app.get('/', function (req, res) {
 
 
             //SKIP DELETED DOCS
-            if(element.deleted != undefined && element.deleted){
+            if (element.deleted != undefined && element.deleted) {
                 continue;
             }
             pro.push(element);
@@ -142,7 +194,7 @@ app.get('/', function (req, res) {
 
         if (body.docs != undefined && body.docs != null) {
             res.render('index.ejs', {
-                projects:JSON.stringify({projects:pro})//.projects -> array
+                projects: JSON.stringify({ projects: pro })//.projects -> array
             });
         } else {
             res.redirect("/error?r=result_contains_no_project_docs");
@@ -151,8 +203,14 @@ app.get('/', function (req, res) {
 
 
 
-   
+
 });
+
+
+
+
+
+
 app.get('/error', function (req, res) {
     res.render('error.ejs', {
         err: sanitizer.sanitize(req.query.r)
@@ -198,24 +256,76 @@ app.get('/partlist.json', function (req, res) {
 
 
 app.get('/part', function (req, res) {
-
-    if (req.query.id == undefined || req.query.id == null || sanitizer.sanitize(req.query.id) == ""){
-        res.redirect("/error?r=no_part_id_given");
-    }
-    //TODO GET PART FROM DB
     res.render('part.ejs', {
-        pid: sanitizer.sanitize(req.query.id)
+        pid: null,
+        project_data_str: null
     });
-});
+    res.finished = true;
+    return;
 
 
-app.get('/project', function (req, res) {
     var q = {
         "selector": {
             "_id": {
                 "$gt": null
             },
-            "project_id": sanitizer.sanitize( req.query.id)
+            "project_id": req.query.id
+        }
+    };
+    pbm_db_projects.find(q, (err, body, header) => {
+        if (err) {
+            console.log('Error thrown: ', err.message);
+            //   res.redirect("/error?r=db_query_error_project_find");
+            // res.finished = true;
+            return;
+        }
+        if (body.docs.length <= 0) {
+            console.log('Error thrown: no projects found');
+            //    res.redirect("/error?r=no_project_with_this_id_found");
+            //  res.finished = true;
+            return;
+        }
+        if (body.docs != undefined && body.docs != null) {
+            var project_doc = body.docs[0];
+
+            if (project_doc.deleted) {
+                //    res.redirect("/error?r=project_was_deleted");
+                res.finished = true;
+                return;
+            }
+
+            res.render('part.ejs', {
+                pid: sanitizer.sanitize(req.query.id),
+                project_data_str: JSON.stringify(project_doc)
+            });
+            res.finished = true;
+            return;
+        } else {
+            //      res.redirect("/error?r=result_contains_no_project_docs");
+            //        res.finished = true;
+        }
+    });
+
+});
+
+
+app.get('/project', function (req, res) {
+
+
+    res.render('project.ejs', {
+        pid: null,
+        project_data_str: null
+    });
+    res.finished = true;
+    return;
+
+
+    var q = {
+        "selector": {
+            "_id": {
+                "$gt": null
+            },
+            "project_id": req.query.id
         }
     };
     pbm_db_projects.find(q, (err, body, header) => {
@@ -225,21 +335,17 @@ app.get('/project', function (req, res) {
             res.finished = true;
             return;
         }
-        if(body.docs.length <= 0){
+        if (body.docs.length <= 0) {
             console.log('Error thrown: no projects found');
             res.redirect("/error?r=no_project_with_this_id_found");
             res.finished = true;
             return;
         }
-      
-
-
-
         if (body.docs != undefined && body.docs != null) {
             var project_doc = body.docs[0];
 
-            if (project_doc.deleted){
-                res.redirect("/error?r=project_was_deleted");
+            if (project_doc.deleted) {
+               res.redirect("/error?r=project_was_deleted");
                 res.finished = true;
                 return;
             }
@@ -249,22 +355,18 @@ app.get('/project', function (req, res) {
                 project_data_str: JSON.stringify(project_doc)
             });
             res.finished = true;
+            return;
         } else {
             res.redirect("/error?r=result_contains_no_project_docs");
-            res.finished = true;
+           res.finished = true;
         }
-
-
-
     });
 
 });
 
 
-function generate_step_id(_array_len){
-
-
-    return String(_array_len) + "-" +randomstring.generate({
+function generate_step_id(_array_len) {
+    return String(_array_len) + "-" + randomstring.generate({
         length: 7,
         charset: 'abcdefghijklmnopqrstuvwxyz'
     });
@@ -279,6 +381,8 @@ function generate_project_id() {
     });
 }
 
+
+//this is a project inital entry in the db to create a new project
 var project_db_entry_template = {
     project_id: "1337",
     tile: "Patient Service Signal",
@@ -289,59 +393,73 @@ var project_db_entry_template = {
     last_update: null,
     deleted: false,
     file_storage: [
-        
+
     ],
     additional_propteries: [
-        
+
     ],
     parts: [
-       
+
     ],
     step_history: [
-        
-    ]
-};
 
+    ],
+    deleted: false
+};
+//and a template for a step
 var project_db_entry_template_step_history = {
-    id: "0",
+    id: "-1",
     title: "Project was created",
     desc: "---",
     timestamp: 1531152389
 };
+
+
+var project_db_entry_template_add_properties = {
+    key: "TYPE",
+    value: "PAID"
+}
+
+
+var project_db_entry_template_file_storage = {
+    fid: "3131231",
+      name: "3D Files -Thingiverse",
+    url: "https://www.thingiverse.com/thing:2988136"
+}
 //-> creates a new project and redirect it to the new project page /project id=123 if failed error page
 //< form action = "/create_project"
 //method = "POST" >
 app.post('/create_project', function (req, res) {
-    sess = req.session;
-
     if (req.body.project_name == undefined || req.body.project_desc == undefined || sanitizer.sanitize(req.body.project_name) == "" || sanitizer.sanitize(req.body.project_desc) == "") {
         res.redirect("/error?r=project.desc_or_project_name not set in request");
         res.finished = true;
         return;
     }
-
-
     //generate a pid
     var pid = uuidv1();
     //pid = String(pid).replace("-","");
     var ptpl = project_db_entry_template;
     ptpl._id = pid;
     ptpl.project_id = generate_project_id();
-
+    //set title and description
     ptpl.tile = sanitizer.sanitize(req.body.project_name);
     ptpl.desc = sanitizer.sanitize(req.body.project_desc);
-
-
+    //set timestamps
     ptpl.created = Math.round(new Date().getTime() / 1000);
     ptpl.last_update = Math.round(new Date().getTime() / 1000);
-    ptpl._id = uuidv1();
+    //insert initial step
     var step_tpl = project_db_entry_template_step_history;
     step_tpl.timestamp = ptpl.last_update;
     step_tpl.id = generate_step_id(0);
     ptpl.step_history.push(step_tpl);
-
+    //Add a custom prop to it if you want
+    var aptmp = project_db_entry_template_add_properties;
+    aptmp.key = "KATEGORY";
+    aptmp.value = "PAID";
+    //ptpl.additional_propteries.push(aptmp);
+    //write to db and redirect to project
     pbm_db_projects.insert(ptpl, function (err, body) {
-        if (err){
+        if (err) {
             console.log(body);
             res.redirect("/error?r=db insert failed please check your db");
             res.finished = true;
@@ -349,24 +467,20 @@ app.post('/create_project', function (req, res) {
         }
         console.log(body)
         res.redirect("/project?id=" + pid + "");
-        res.finished = true;    
+        res.finished = true;
     });
-
     return;
 });
 
 
 
 app.post('/project_delete', function (req, res) {
-   
-   
-    if (req.body.pid == undefined || sanitizer.sanitize(req.body.pid) == "" ) {
+    if (req.body.pid == undefined || sanitizer.sanitize(req.body.pid) == "") {
         res.redirect("/error?r=pid_not_set_in_request");
         res.finished = true;
         return;
     }
-
-
+    //get project doc form db
     var q = {
         "selector": {
             "_id": {
@@ -375,6 +489,7 @@ app.post('/project_delete', function (req, res) {
             "project_id": sanitizer.sanitize(req.body.pid)
         }
     };
+    //get project entry in db
     pbm_db_projects.find(q, (err, body, header) => {
         if (err) {
             console.log('Error thrown: ', err.message);
@@ -388,14 +503,11 @@ app.post('/project_delete', function (req, res) {
             res.finished = true;
             return;
         }
-        
-
-
-
         if (body.docs != undefined && body.docs != null) {
+            //change delted attribut to true
             var project_doc = body.docs[0];
             project_doc.deleted = true;
-
+            //insert it back again to save a revsion
             pbm_db_projects.insert(project_doc, function (err, body) {
                 if (err) {
                     console.log(body);
@@ -406,31 +518,12 @@ app.post('/project_delete', function (req, res) {
                 console.log(body)
                 res.redirect("/");
                 res.finished = true;
-
-            })
-
+            });
         } else {
             res.redirect("/error?r=result_contains_no_project_docs_project_delete");
             res.finished = true;
         }
-
-
-
     });
-
-    
-
-
-    
-
-
-
-
-
-
-
-    //TODO INSERT DB
-
     return;
 });
 
@@ -467,14 +560,14 @@ io.on('connection', (socket) => {
 
 
 
-     /*
+    /*
 
 
-     - > wenn neues project geadded sende an project_update alle projecte s. get /
-     */
-     
+    - > wenn neues project geadded sende an project_update alle projecte s. get /
+    */
 
-     
+
+
 
     socket.on('request_part_add_part', (username) => {
         //project_id
@@ -490,7 +583,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('request_new_project_data', (username) => {
-        
+
         if (username == undefined || username == null || username.project_id == undefined || username.project_id == null) {
             return;
         }
@@ -514,7 +607,7 @@ io.on('connection', (socket) => {
                     project_data_str: project_doc
                 });
             } else {
-           //    throw;
+                //    throw;
             }
         });
     });

@@ -53,7 +53,7 @@
             <!-- /.col-lg-8 -->
             <div class="col-lg-4">
                 <h3>
-                    <span id="pr_title">PROJECT</span>
+                    <span id="pr_title">PART</span>
                 </h3>
 
 
@@ -224,176 +224,12 @@
 
 
 
-        function timeConverter(UNIX_timestamp, with_time = false) {
-            try {
-                var a = new Date(UNIX_timestamp * 1000);
-                var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                var year = a.getFullYear();
-                var month = months[a.getMonth()];
-                var date = a.getDate();
-                var hour = a.getHours();
-                var min = a.getMinutes();
-                var sec = a.getSeconds();
-                if (with_time) {
-                    return date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec;
-                } else {
-                    return date + ' ' + month + ' ' + year;
-                }
-            } catch (error) {
-                return UNIX_timestamp
-            }
-        }
+  
 
-        function clear_tables() {
-            $("#pr_table_spec_body").html("");
-            $("#pr_table_body_parts").html("");
-            povt_index = 0;
-        }
-        var povt_index = 0; //FIXED OFFSET FOR REQUIRED ITEMS
-        function add_row_to_project_overview_table(_k, _v) {
-            $("#pr_table_spec_body").append("<tr><th scope=\"row\">" + povt_index + "</th><td>" + _k +
-                "</td><td><span id=\"pr_client\">" + _v + "</span></td></tr>");
-            povt_index++;
-        }
-
-        function update_part_amount(_part_id, _amount) {
-            if (project_data == undefined && project_data != null) {
-                return;
-            }
-            var request = {
-                project_id: project_data.pid,
-                part_id: _part_id,
-                amount: _amount
-            }
-            //TODO
-            //send request to increase part amount
-        }
-
-function state_change(_st){
-    socket.emit('request_state_change', {
-                            project_id: project_data_str_init.project_id,
-                            state:_st
-                        });
-
-}
-        function add_part_to_project() {
-            var pid = $("#add_new_part_item_input").val();
-            var am = $("#add_new_part_amount_input").val();
-            //TODO REQUEST SOCK IO
-            socket.emit('request_part_add_part', {
-                project_id: project_data_str_init.project_id,
-                part_id: pid,
-                amount: am
-            });
-        }
-
-        function add_row_to_part_table(_part_arr) {
-            if (_part_arr == undefined || _part_arr == null) {
-                return;
-            }
-            //GET 
-            for (let index = 0; index < _part_arr.length; index++) {
-                var element = _part_arr[index];
-                if (element.purpose == undefined || element.purpose == null) {
-                    element.purpose = "DESC";
-                }
-                if (element.amount <= 0) {
-                    continue;
-                }
-                if (partlist_data != undefined && partlist_data.parts != undefined) {
-                    for (let index = 0; index < partlist_data.parts.length; index++) {
-                        const element_part = partlist_data.parts[index];
-                        if (element_part.part_id == element.pid) {
-                            element.title = element_part.title;
-                            break;
-                        }
-                    }
-                }
-                $("#pr_table_body_parts").append("<tr><th scope=\"row\"><a href=\"/parts?pid=" + element.pid + "\" />" +
-                    element.pid + "</a></th><td>" +
-                    "<input type=\"number\" value=" + element.amount +
-                    " min=\"0\" style=\"width:50px;\" id=\"part_" + element.pid + "\"/>" +
-                    "x <span id=\"part_" + element.pid + "_int\"></span>" +
-                    "</td><td>" +
-                    "<span id=\"pr_client\" title=\"" + element.purpose + "\">" + element.title +
-                    "</span></td></tr>");
-                //TODO BUGGY
-                $("#part_" + element.pid + "").change(function () {
-                    $("#part_" + element.pid + "_int").html("<input id=\"part_" + element.pid +
-                        "_btn\" type=\"button\" value=\"SAVE\"/>");
-                    $("#part_" + element.pid + "_btn").click(function () {
-                        $("#part_" + element.pid + "_int").html("");
-                        var val = $("#part_" + element.pid + "").val();
-                        alert(val);
-
-                        socket.emit('request_part_amount_change', {
-                            project_id: project_data_str_init.project_id,
-                            part_id: element.pid,
-                            amount: val
-                        });
+     
 
 
-                    });
-
-
-                });
-            }
-        }
-
-
-
-
-        function parse_project_data_parts(_dt) {
-            if (_dt == null) {
-                return;
-            }
-
-            add_row_to_part_table(_dt.parts);
-        }
-
-        function parse_project_data_overview_table(_dt) {
-            povt_index = 0;
-            if (_dt == null) {
-                return;
-            }
-
-            if (_dt.tile != undefined && _dt.tile != null) {
-                if (_dt.revision != undefined && _dt.revision != null) {
-                    $("#pr_title").html(_dt.tile.toString() + "<br>[Rev " + _dt.revision.toString() + "]");
-                } else {
-                    $("#pr_title").html(_dt.tile.toString());
-                }
-            }
-
-            if (_dt.created != undefined && _dt.created != null) {
-                add_row_to_project_overview_table("CREATED", timeConverter(_dt.created.toString()));
-            }
-            if (_dt.status != undefined && _dt.status != null) {
-
-                var col = "white";
-                if (_dt.status == "open") {
-                    col = 'green';
-                } else if (_dt.status == "closed") {
-                    col = 'red';
-                } else if (_dt.status == "pending") {
-                    col = 'yellow';
-                }
-
-                add_row_to_project_overview_table("STATUS", "<span style='color: " + col + ";'>" + _dt.status.toString() +
-                    "</span>");
-            }
-
-            if (_dt.last_update != undefined && _dt.last_update != null) {
-
-                add_row_to_project_overview_table("LAST_UPDATE", timeConverter(_dt.last_update.toString()));
-            }
-            if (_dt.additional_propteries != undefined && _dt.additional_propteries != null) {
-                for (let index = 0; index < _dt.additional_propteries.length; index++) {
-                    const element = _dt.additional_propteries[index];
-                    add_row_to_project_overview_table(element.key, element.value);
-                }
-            }
-        }
+      
         $(document).ready(function () {
             console.log("ready!");
             //FETCH PARTLIST
@@ -467,11 +303,7 @@ function state_change(_st){
             });
 
 
-            setInterval(function () {
-                socket.emit('request_new_project_data', {
-                    project_id: project_data_str_init.project_id
-                });
-            }, 3000);
+          
 
 
 
