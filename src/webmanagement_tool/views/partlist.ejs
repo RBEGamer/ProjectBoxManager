@@ -7,6 +7,7 @@
     <link href="./bower_components/font-awesome/web-fonts-with-css/css/fontawesome.min.css" rel="stylesheet">
 
 
+<link rel="stylesheet" type="text/css" href="/jQuery-Tags-Input/dist/jquery.tagsinput.min.css" />
 
 
 
@@ -112,16 +113,77 @@
 
     <div class="row">
         <div class="col-lg-4"><h4>PART MESSAGES</h4><div id="part_stock_message"></div></div>
-        <div class="col-lg-8"><h4>ADD A NEW PART</h4></div>
+        <div class="col-lg-8">
+            <h4>ADD A NEW PART</h4>
+        
+  
+            <form ref='uploadForm' id='uploadForm' action='/create_part' method='post' encType="multipart/form-data">
+      
+                <div class="form-group">
+                    <label for="new_part_title">Part Title</label>
+                    <input type="text" class="form-control" id="new_part_title" aria-describedby="new_part_title" placeholder="Part-Title" required maxlength="30">
+                    <small id="new_part_title" class="form-text text-muted">The Name/Title of the Part</small>
+                </div>
+                <div class="form-group">
+                    <label for="new_part_description">Part Description</label>
+                    <input type="text" class="form-control" id="new_part_description" ria-describedby="new_part_description" placeholder="A short description" required>
+                    <small id="new_part_description" class="form-text text-muted">A short description of the Part</small>
+                </div>
+                
+
+
+                <div class="form-group">
+                    <label for="new_part_image">Upload a Part-Image</label>
+                    <input type="file" class="form-control-file" id="new_part_image" aria-describedby="new_part_image" accept="image/*">
+                    <small id="new_part_image" class="form-text text-muted">Please Upload an Image of the Part (.png, square, 512x512)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="new_part_datasheet">Upload a Datasheet</label>
+                    <input type="file" class="form-control-file" id="new_part_datasheet" aria-describedby="new_part_datasheet" accept="application/pdf,application/vnd.ms-excel">
+                    <small id="new_part_datasheet" class="form-text text-muted">Upload a PDF Datasheet of the Part</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="keyword_tags">Keywords</label>
+                    <input type="text" class="form-control-file" id="keyword_tags" name="keyword_tags" aria-describedby="keyword_tags" required>
+                    <small id="keyword_tags" class="form-text text-muted">
+                        Insert here your Keywords for the Part to Search for it.
+                    </small>
+                </div>
+
+<div class="form-group">
+    <label for="new_part_stock">Current Stock</label>
+    <input type="number" class="form-control-file" id="new_part_stock" step="1" min="0" aria-describedby="new_part_stock" required>
+    <small id="new_part_stock" class="form-text text-muted">Enter the current Stock amount of the Part</small>
+</div>
+
+
+
+
+
+<div class="form-group">
+    <label for="new_part_stock">Location</label>
+    <input type="number" class="form-control-file" id="new_part_stock" step="1" min="0" aria-describedby="new_part_stock" required>
+    <small id="new_part_stock" class="form-text text-muted">Enter the current Stock amount of the Part</small>
+</div>
+              
+                
+                <button type="submit" class="btn btn-primary">Save New Part</button>
+            </form>
+        
+        
+        
+        </div>
     </div>
 
 
-    <script src="./bower_components/jquery/dist/jquery.js"></script>
-    <script src="./bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script type='text/javascript' src='./bower_components/chart.js/dist/Chart.bundle.js'></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
-    <script type='text/javascript' src='./bower_components/awesomplete/awesomplete.min.js'></script>
-
+    <script src="/bower_components/jquery/dist/jquery.js"></script>
+    <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type='text/javascript' src='/bower_components/chart.js/dist/Chart.bundle.js'></script>
+    <script src="/2.0.4_socket.io.js"></script>
+    <script type='text/javascript' src='/bower_components/awesomplete/awesomplete.min.js'></script>
+    <script type='text/javascript' src='/jQuery-Tags-Input/dist/jquery.tagsinput.min.js'></script>
 
 
 
@@ -295,7 +357,9 @@
 
             console.log("ready!");
 
-            $
+            $('#keyword_tags').tagsInput();
+
+
             $.get("/card_template_parts.html", function (data) {
                 card_html_template_str = data;
 

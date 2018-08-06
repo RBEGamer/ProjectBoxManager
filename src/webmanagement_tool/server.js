@@ -19,7 +19,7 @@ var fs = require('fs');
 var barcode = require('barcode');
 var sanitizer = require('sanitizer');
 var port = process.env.PORT || config.webserver_default_port || 3000;
-
+var fileUpload = require('express-fileupload');
 //----------------------------- EXPRESS APP SETUP ------------------------------------------//
 app.set('trust proxy', 1);
 app.use(function (req, res, next) {
@@ -42,6 +42,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
+app.use(fileUpload());
+
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -108,7 +110,7 @@ readFiles('./public/img/part_icons', '/img/part_icons', function (filename, cont
 
 
 
-
+//GET A COMPLETE PART LIST
 app.get('/parts', function (req, res) {
     var q = {
         "selector": {
@@ -153,8 +155,21 @@ app.get('/parts', function (req, res) {
 
 });
 
+//TO CREATE A NEW PART IN THE DATABASE WITH FILEUPLOAD FOR IMAGES
+app.post('/create_part', function (req, res) {
+    if (!req.files)
+        return res.status(400).send('No files were uploaded.');
+
+    // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
+    let sampleFile = req.files.sampleFile;
+    let sampleFile_datasheet = req.files.sampleFile_datasheet;
+    // Use the mv() method to place the file somewhere on your server
+    console.log(sampleFile.name);
+    console.log(sampleFile_datasheet.name);
 
 
+    res.redirect("/parts");
+});
 
 
 
