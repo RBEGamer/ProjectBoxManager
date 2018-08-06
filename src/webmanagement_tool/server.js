@@ -296,6 +296,60 @@ app.post('/create_part', function (req, res) {
 });
 
 
+app.post('/part_delete', function (req, res) {
+    if (req.body.pid == undefined || sanitizer.sanitize(req.body.pid) == "") {
+        res.redirect("/error?r=pid_not_set_in_request");
+        res.finished = true;
+        return;
+    }
+    //get project doc form db
+    var q = {
+        "selector": {
+            "_id": {
+                "$gt": null
+            },
+            "part_id": sanitizer.sanitize(req.body.pid)
+        }
+    };
+    //get project entry in db
+    pbm_db_parts.find(q, (err, body, header) => {
+        if (err) {
+            console.log('Error thrown: ', err.message);
+            res.redirect("/error?r=db_query_error_part_find_project_delete");
+            res.finished = true;
+            return;
+        }
+        if (body.docs.length <= 0) {
+            console.log('Error thrown: no projects found');
+            res.redirect("/error?r=no_part_with_this_id_found_project_delete");
+            res.finished = true;
+            return;
+        }
+        if (body.docs != undefined && body.docs != null) {
+            //change delted attribut to true
+            var project_doc = body.docs[0];
+            project_doc.deleted = true;
+            //insert it back again to save a revsion
+            pbm_db_parts.insert(project_doc, function (err, body) {
+                if (err) {
+                    console.log(body);
+                    res.redirect("/error?r=db_insert_failed_please_check_your_db_part_delete");
+                    res.finished = true;
+                    return;
+                }
+                console.log(body);
+                res.redirect("/parts");
+                res.finished = true;
+            });
+        } else {
+            res.redirect("/error?r=result_contains_no_part_docs_project_delete");
+            res.finished = true;
+        }
+    });
+    return;
+});
+
+
 
 
 //SHOWS ALL PROJECTS AT THE INDEX HTML

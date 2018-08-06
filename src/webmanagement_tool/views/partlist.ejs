@@ -186,7 +186,7 @@
                 <label for="new_part_supplier">Supplier</label>
                 <div class="new_part_supplier_container">
                     <div>
-                        <input type="text" class="form-control" name="new_part_supplier[]" placeholder="<SHOPNAME>,<URL>" required>
+                        <input type="text" class="form-control" name="new_part_supplier[]" placeholder="<SHOPNAME>,<URL>" >
                     </div>
 
 
@@ -206,7 +206,7 @@
         <label for="new_part_aa">Additional Attributes</label>
         <div class="new_part_aa_container">
             <div>
-                <input type="text" class="form-control" name="new_part_aa[]" placeholder="<KEY>,<VALUE>" required>
+                <input type="text" class="form-control" name="new_part_aa[]" placeholder="<KEY>,<VALUE>" >
             </div>
 
 
@@ -337,6 +337,10 @@
 
             for (let index = 0; index < _dt.length; index++) {
                 const element = _dt[index];
+                //SKIP HIDDEN PARTS
+                if(element.deleted != undefined && element.deleted){
+                    continue;
+                }
                 //GET TEMPLATE
                 card_html = card_html_template_str;
                 //REPACE TITLES
@@ -360,6 +364,9 @@
                 card_html = card_html.replace("__%%PART_DESC%%__", element.desc + "<br>" + ul_list_html);
                 card_html = card_html.replace("__%%PART_LINK%%__", "/part?id=" + element.part_id);
                 card_html = card_html.replace("__%%PART_STOCK%%__", "" + element.stock);
+
+                card_html = card_html.replace("__%%PART_ID%%__", "" + element.part_id);
+                
                 //ADD IMAGE IN NULL USE PLACEHOLDER
                 if (element.image_url) {
                     card_html = card_html.replace("__%%PART_ICON%%__", element.image_url);
