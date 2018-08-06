@@ -155,20 +155,144 @@ app.get('/parts', function (req, res) {
 
 });
 
+
+
+var new_part_db_entry_template = {
+
+    part_id: "",
+    title: "",
+    desc: "",
+    stock: "0",
+    location: "",
+    keywords: [
+
+    ],
+    image_url: "/img/part_images/part_default.png",
+    additional_attributes: [
+    ],
+    supplier: [
+
+    ],
+    datasheet_url: "",
+    deleted:false
+};
+
+
+var new_part_db_additional_attributes_template = {
+    key: "",
+    value: ""
+};
+
+var new_part_db_supplier_template = {
+    shopname: "",
+    url: ""
+}
+
+function generate_part_id() {
+    return randomstring.generate({
+        length: 13,
+        charset: String(Math.round(new Date().getTime() / 1000))
+    });
+}
+
+
+
 //TO CREATE A NEW PART IN THE DATABASE WITH FILEUPLOAD FOR IMAGES
 app.post('/create_part', function (req, res) {
-    if (!req.files)
-        return res.status(400).send('No files were uploaded.');
+    console.log(req.body);
+    if (!req.body.new_part_title || !req.body.new_part_description || !req.body.new_part_tags || !req.body.new_part_stock) {
+        res.redirect("/error?r=please_fill_in_all_required_fileds");
+        return;
+    }
+    
 
+
+
+
+    var tmp = new_part_db_entry_template;
+    tmp._id = uuidv1();
+    tmp.part_id = generate_part_id();
+    tmp.title = sanitizer.sanitize(req.body.new_part_title);
+    tmp.desc = sanitizer.sanitize(req.body.new_part_description);
+    tmp.stock = sanitizer.sanitize(req.body.new_part_stock);
+    tmp.keywords = sanitizer.sanitize(req.body.new_part_stock).split(",");
+
+    tmp.location = sanitizer.sanitize(req.body.new_part_location);
+
+    if (req.body.new_part_aa) {
+        for (let indexaa = 0; indexaa < req.body.new_part_aa.length; indexaa++) {
+            const element = array[indexaa];
+            var sp = String(sanitizer.sanitize(element)).split(",");
+            var aa_tmpl = new_part_db_additional_attributes_template;
+            if (sp.length <= 1){
+                aa_tmpl.value = String(sanitizer.sanitize(element));
+            }else{
+                aa_tmpl.key = sp[0];
+                aa_tmpl.value = sp[1];
+            }
+            tmp.additional_attributes.push(aa_tmpl);
+        }
+    } else {
+        tmp.additional_attributes = [];
+    }
+
+
+
+    if (req.body.new_part_supplier) {
+        for (let indexsp = 0; indexsp < req.body.new_part_supplier.length; indexsp++) {
+            const element = array[indexsp];
+            var sp = String(sanitizer.sanitize(element)).split(",");
+            var sp_tmpl = new_part_db_supplier_template;
+            if (sp.length <= 1) {
+                sp_tmpl.shopname = String(sanitizer.sanitize(element));
+            } else {
+                sp_tmpl.shopname = sp[0];
+                sp_tmpl.url = sp[1];
+            }
+            tmp.supplier.push(sp_tmpl);
+        }
+    } else {
+        tmp.supplier = [];
+    }
     // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
-    let sampleFile = req.files.sampleFile;
-    let sampleFile_datasheet = req.files.sampleFile_datasheet;
-    // Use the mv() method to place the file somewhere on your server
-    console.log(sampleFile.name);
-    console.log(sampleFile_datasheet.name);
 
 
-    res.redirect("/parts");
+    if (req.files && req.files.new_part_image){
+        let imf = req.files.new_part_image;
+        var ext = imf.name;
+        var fin_path = "./public/img/part_images/" + String(tmp.part_id) + "-" + ext;
+        tmp.image_url = "/img/part_images/" + String(tmp.part_id) + "-" + ext;
+        imf.mv(fin_path, function (err) {  
+                //TODO CHECK SUCCESS
+            console.log(err);
+        });
+    }
+   
+
+    if (req.files && req.files.new_part_datasheet) {
+        let imd = req.files.new_part_datasheet;
+        var extd = imd.name;
+        var fin_path_d = "./public/part_datasheets/" + String(tmp.part_id) + "-" + extd;
+        tmp.datasheet_url = "/part_datasheets/" + String(tmp.part_id) + "-" + extd;
+        imd.mv(fin_path_d, function (err) {
+            //TODO CHECK SUCCESS
+            console.log(err);
+        });
+    }
+
+
+    pbm_db_parts.insert(tmp, function (err, body) {
+        if (err) {
+            console.log(body);
+            res.redirect("/error?r=db insert failed please check your db");
+            res.finished = true;
+            return;
+        }
+        console.log(body);
+        res.redirect("/part?id=" + String(tmp.part_id));
+        res.finished = true;
+    });
+    return;
 });
 
 
@@ -360,7 +484,7 @@ app.get('/project', function (req, res) {
             var project_doc = body.docs[0];
 
             if (project_doc.deleted) {
-               res.redirect("/error?r=project_was_deleted");
+                res.redirect("/error?r=project_was_deleted");
                 res.finished = true;
                 return;
             }
@@ -373,7 +497,7 @@ app.get('/project', function (req, res) {
             return;
         } else {
             res.redirect("/error?r=result_contains_no_project_docs");
-           res.finished = true;
+            res.finished = true;
         }
     });
 
@@ -438,7 +562,7 @@ var project_db_entry_template_add_properties = {
 
 var project_db_entry_template_file_storage = {
     fid: "3131231",
-      name: "3D Files -Thingiverse",
+    name: "3D Files -Thingiverse",
     url: "https://www.thingiverse.com/thing:2988136"
 }
 //-> creates a new project and redirect it to the new project page /project id=123 if failed error page

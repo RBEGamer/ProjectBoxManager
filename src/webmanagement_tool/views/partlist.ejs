@@ -7,7 +7,7 @@
     <link href="./bower_components/font-awesome/web-fonts-with-css/css/fontawesome.min.css" rel="stylesheet">
 
 
-<link rel="stylesheet" type="text/css" href="/jQuery-Tags-Input/dist/jquery.tagsinput.min.css" />
+    <link rel="stylesheet" type="text/css" href="/jQuery-Tags-Input/dist/jquery.tagsinput.min.css" />
 
 
 
@@ -46,28 +46,32 @@
             /* Add some space below the input */
         }
 
-        .alert {
-    padding: 20px;
-    background-color: #f4c842;
-    color: white;
-}
+        .alert_orange {
+            padding: 20px;
+            background-color: #f4c842;
+            color: white;
+        }
 
-.closebtn {
-    margin-left: 15px;
-    color: white;
-    font-weight: bold;
-    float: right;
-    font-size: 22px;
-    line-height: 20px;
-    cursor: pointer;
-    transition: 0.3s;
-}
+        .alert_red {
+            padding: 20px;
+            background-color: #ff3300;
+            color: white;
+        }
 
-.closebtn:hover {
-    color: black;
-}
+        .closebtn {
+            margin-left: 15px;
+            color: white;
+            font-weight: bold;
+            float: right;
+            font-size: 22px;
+            line-height: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
 
-
+        .closebtn:hover {
+            color: black;
+        }
     </style>
 </head>
 
@@ -104,77 +108,127 @@
     </div>
 
 
-<div class="row my-12">
-    <div class="col-lg-12" style="height:50px; width:100%; clear:both;">
-        <br>
+    <div class="row my-12">
+        <div class="col-lg-12" style="height:50px; width:100%; clear:both;">
+            <br>
+        </div>
     </div>
-</div>
 
 
     <div class="row">
-        <div class="col-lg-4"><h4>PART MESSAGES</h4><div id="part_stock_message"></div></div>
+        <div class="col-lg-4">
+            <h4>PART MESSAGES</h4>
+            <div id="part_stock_message"></div>
+        </div>
         <div class="col-lg-8">
             <h4>ADD A NEW PART</h4>
-        
-  
+
+
             <form ref='uploadForm' id='uploadForm' action='/create_part' method='post' encType="multipart/form-data">
-      
+
                 <div class="form-group">
-                    <label for="new_part_title">Part Title</label>
-                    <input type="text" class="form-control" id="new_part_title" aria-describedby="new_part_title" placeholder="Part-Title" required maxlength="30">
+                    <label for="new_part_title">Part Title *</label>
+                    <input type="text" class="form-control" id="new_part_title" name="new_part_title" aria-describedby="new_part_title" placeholder="Part-Title"
+                        required maxlength="30">
                     <small id="new_part_title" class="form-text text-muted">The Name/Title of the Part</small>
                 </div>
                 <div class="form-group">
-                    <label for="new_part_description">Part Description</label>
-                    <input type="text" class="form-control" id="new_part_description" ria-describedby="new_part_description" placeholder="A short description" required>
+                    <label for="new_part_description">Part Description *</label>
+                    <input type="text" class="form-control" id="new_part_description" name="new_part_description" ria-describedby="new_part_description"
+                        placeholder="A short description" required>
                     <small id="new_part_description" class="form-text text-muted">A short description of the Part</small>
                 </div>
-                
+
 
 
                 <div class="form-group">
                     <label for="new_part_image">Upload a Part-Image</label>
-                    <input type="file" class="form-control-file" id="new_part_image" aria-describedby="new_part_image" accept="image/*">
+                    <input type="file" class="form-control-file" id="new_part_image" name="new_part_image" aria-describedby="new_part_image"
+                        accept="image/*">
                     <small id="new_part_image" class="form-text text-muted">Please Upload an Image of the Part (.png, square, 512x512)</small>
                 </div>
 
                 <div class="form-group">
                     <label for="new_part_datasheet">Upload a Datasheet</label>
-                    <input type="file" class="form-control-file" id="new_part_datasheet" aria-describedby="new_part_datasheet" accept="application/pdf,application/vnd.ms-excel">
+                    <input type="file" class="form-control-file" id="new_part_datasheet" name="new_part_datasheet" aria-describedby="new_part_datasheet"
+                        accept="application/pdf,application/vnd.ms-excel">
                     <small id="new_part_datasheet" class="form-text text-muted">Upload a PDF Datasheet of the Part</small>
                 </div>
 
                 <div class="form-group">
-                    <label for="keyword_tags">Keywords</label>
-                    <input type="text" class="form-control-file" id="keyword_tags" name="keyword_tags" aria-describedby="keyword_tags" required>
-                    <small id="keyword_tags" class="form-text text-muted">
+                    <label for="keyword_tags">Keywords *</label>
+                    <input type="text" class="form-control-file" id="new_part_tags" name="new_part_tags" aria-describedby="new_part_tags" required>
+                    <small id="new_part_tags" class="form-text text-muted">
                         Insert here your Keywords for the Part to Search for it.
                     </small>
                 </div>
 
-<div class="form-group">
-    <label for="new_part_stock">Current Stock</label>
-    <input type="number" class="form-control-file" id="new_part_stock" step="1" min="0" aria-describedby="new_part_stock" required>
-    <small id="new_part_stock" class="form-text text-muted">Enter the current Stock amount of the Part</small>
-</div>
+                <div class="form-group">
+                    <label for="new_part_stock">Current Stock * </label>
+                    <input type="number" class="form-control-file" id="new_part_stock" name="new_part_stock" step="1" min="0" aria-describedby="new_part_stock"
+                        value="1" required>
+                    <small id="new_part_stock" class="form-text text-muted">Enter the current Stock amount of the Part</small>
+                </div>
 
 
 
 
 
-<div class="form-group">
-    <label for="new_part_stock">Location</label>
-    <input type="number" class="form-control-file" id="new_part_stock" step="1" min="0" aria-describedby="new_part_stock" required>
-    <small id="new_part_stock" class="form-text text-muted">Enter the current Stock amount of the Part</small>
-</div>
-              
-                
-                <button type="submit" class="btn btn-primary">Save New Part</button>
-            </form>
-        
-        
-        
+                <div class="form-group">
+                    <label for="new_part_location">Location</label>
+                    <input type="text" class="form-control-file" name="new_part_location" id="new_part_location" aria-describedby="new_part_location_box">
+                    <small id="new_part_location" class="form-text text-muted">Enter Description where the Part is clocated</small>
+                </div>
+
+
+
+                <div class="form-group">
+                <label for="new_part_supplier">Supplier</label>
+                <div class="new_part_supplier_container">
+                    <div>
+                        <input type="text" class="form-control" name="new_part_supplier[]" placeholder="<SHOPNAME>,<URL>" required>
+                    </div>
+
+
+                </div>
+                <button class="add_form_field_supplier">Add &nbsp;
+                    <span style="font-size:16px; font-weight:bold;">+</span>
+                </button>
+
+
+                <small id="new_part_location" class="form-text text-muted">Enter a Part Supplier for this Part</small>
         </div>
+
+
+
+
+        <div class="form-group">
+        <label for="new_part_aa">Additional Attributes</label>
+        <div class="new_part_aa_container">
+            <div>
+                <input type="text" class="form-control" name="new_part_aa[]" placeholder="<KEY>,<VALUE>" required>
+            </div>
+
+
+        </div>
+
+        <button class="add_form_field_aa">Add &nbsp;
+            <span style="font-size:16px; font-weight:bold;">+</span>
+        </button>
+
+
+        <small id="new_part_location" class="form-text text-muted">Enter a KEY VALUE Pair for more part information</small>
+    </div>
+
+
+
+
+    <button type="submit" class="btn btn-primary">Save New Part</button>
+    </form>
+
+
+
+    </div>
     </div>
 
 
@@ -269,28 +323,28 @@
             document.getElementById("part_cards_holder").textContent = "";
 
             $("part_stock_message").html("");
-             document.getElementById("part_stock_message").textContent = "";
-            
+            document.getElementById("part_stock_message").textContent = "";
+
             if (card_html_template_str == "") {
                 console.log("card_tmp_not_loaded");
                 return;
             }
 
 
-            var stock_message_html ="";
+            var stock_message_html = "";
             var card_html = "";
             var ul_list_html = "";
 
             for (let index = 0; index < _dt.length; index++) {
                 const element = _dt[index];
                 //GET TEMPLATE
-                 card_html = card_html_template_str;
-                 //REPACE TITLES
+                card_html = card_html_template_str;
+                //REPACE TITLES
                 card_html = card_html.replace("__%%PART_TITLE%%__", element.title);
                 card_html = card_html.replace("__%%PART_TITLE%%__", element.title);
 
                 //CREATE A SIMPLE LIST WITH ALL ADDITIONAL ATTRIBUTES
-                 ul_list_html = "";
+                ul_list_html = "";
                 if (element.additional_attributes) {
                     ul_list_html += "<ul>";
                     for (let aaindex = 0; aaindex < element.additional_attributes.length; aaindex++) {
@@ -325,13 +379,15 @@
 
 
                 //CREATE STOCK MESSAGES
-                if(element.stock && element.stock <= 1){
-                    stock_message_html = "<div class='alert'> <strong>STOCK ALERT</strong> The Stock count of <a href='/part?id=" + element.part_id+"'>" +element.title+"</a> is low! Please reorder</div>";
-
+                if (element.stock && element.stock <= 0) {
+                    stock_message_html = "<div class='alert_red'> <strong>STOCK ALERT</strong> The Stock count of <a href='/part?id=" + element.part_id + "'>" + element.title + "</a> is <strong>EMPTY</strong>! Please reorder</div><br />";
+                    $("#part_stock_message").append(stock_message_html);
+                } else if (element.stock && element.stock <= 1) {
+                    stock_message_html = "<div class='alert_orange'> <strong>STOCK ALERT</strong> The Stock count of <a href='/part?id=" + element.part_id + "'>" + element.title + "</a> is <b>LOW</b>! Please reorder</div><br />";
                     $("#part_stock_message").append(stock_message_html);
                 }
-               
-                
+
+
 
 
             }
@@ -351,13 +407,54 @@
 
 
 
+            // FOR SUPPLIER TEXT FILEDS
+            var max_fields = 10;
+            var wrapper_supplier = $(".new_part_supplier_container");
+            var add_button_supplier = $(".add_form_field_supplier");
+
+            var x = 1;
+            $(add_button_supplier).click(function (e) {
+                e.preventDefault();
+                if (x < max_fields) {
+                    x++;
+                    $(wrapper_supplier).append('<div><input type="text" name="new_part_supplier[]" class="form-control" placeholder="<SHOPNAME>,<URL>" required/><a href="#" class="delete">Delete</a></div>'); //add input box
+                }
+                else {
+                    alert('You Reached the limits')
+                }
+            });
+            $(wrapper_supplier).on("click", ".delete", function (e) {
+                e.preventDefault(); $(this).parent('div').remove(); x--;
+            })
+
+
+
+            // FOR SUPPLIER TEXT FILEDS
+
+            var wrapper_aa = $(".new_part_aa_container");
+            var add_button_aa = $(".add_form_field_aa");
+
+            var x = 1;
+            $(add_button_aa).click(function (e) {
+                e.preventDefault();
+                if (x < max_fields) {
+                    x++;
+                    $(wrapper_aa).append('<div><input type="text" name="new_part_aa[]" class="form-control" placeholder="<KEY>,<VALUE>" required/><a href="#" class="delete">Delete</a></div>'); //add input box
+                }
+                else {
+                    alert('You Reached the limits')
+                }
+            });
+            $(wrapper_aa).on("click", ".delete", function (e) {
+                e.preventDefault(); $(this).parent('div').remove(); x--;
+            })
 
 
 
 
             console.log("ready!");
 
-            $('#keyword_tags').tagsInput();
+            $('#new_part_tags').tagsInput();
 
 
             $.get("/card_template_parts.html", function (data) {
