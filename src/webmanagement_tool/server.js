@@ -174,7 +174,7 @@ var new_part_db_entry_template = {
 
     ],
     datasheet_url: "",
-    deleted:false
+    deleted: false
 };
 
 
@@ -204,7 +204,7 @@ app.post('/create_part', function (req, res) {
         res.redirect("/error?r=please_fill_in_all_required_fileds");
         return;
     }
-    
+
 
 
 
@@ -224,9 +224,9 @@ app.post('/create_part', function (req, res) {
             const element = array[indexaa];
             var sp = String(sanitizer.sanitize(element)).split(",");
             var aa_tmpl = new_part_db_additional_attributes_template;
-            if (sp.length <= 1){
+            if (sp.length <= 1) {
                 aa_tmpl.value = String(sanitizer.sanitize(element));
-            }else{
+            } else {
                 aa_tmpl.key = sp[0];
                 aa_tmpl.value = sp[1];
             }
@@ -257,17 +257,17 @@ app.post('/create_part', function (req, res) {
     // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
 
 
-    if (req.files && req.files.new_part_image){
+    if (req.files && req.files.new_part_image) {
         let imf = req.files.new_part_image;
         var ext = imf.name;
         var fin_path = "./public/img/part_images/" + String(tmp.part_id) + "-" + ext;
         tmp.image_url = "/img/part_images/" + String(tmp.part_id) + "-" + ext;
-        imf.mv(fin_path, function (err) {  
-                //TODO CHECK SUCCESS
+        imf.mv(fin_path, function (err) {
+            //TODO CHECK SUCCESS
             console.log(err);
         });
     }
-   
+
 
     if (req.files && req.files.new_part_datasheet) {
         let imd = req.files.new_part_datasheet;
@@ -418,7 +418,7 @@ app.get('/partlist.json', function (req, res) {
             "_id": {
                 "$gt": null
             },
-          
+
         }
     };
     pbm_db_parts.find(q, (err, body, header) => {
@@ -432,7 +432,7 @@ app.get('/partlist.json', function (req, res) {
             for (let index = 0; index < body.docs.length; index++) {
                 const element = body.docs[index];
                 //SKIP HIDDEN PARTS
-                if (element.deleted){
+                if (element.deleted) {
                     continue;
                 }
                 arr.push(element);
@@ -455,7 +455,7 @@ app.get('/partlist.json', function (req, res) {
 
 app.get('/part', function (req, res) {
 
-   
+
 
 
     var q = {
@@ -469,21 +469,21 @@ app.get('/part', function (req, res) {
     pbm_db_parts.find(q, (err, body, header) => {
         if (err) {
             console.log('Error thrown: ', err.message);
-               res.redirect("/error?r=db_query_error_part_find");
-                res.finished = true;
+            res.redirect("/error?r=db_query_error_part_find");
+            res.finished = true;
             return;
         }
         if (body.docs.length <= 0) {
             console.log('Error thrown: no projects found');
-                res.redirect("/error?r=no_part_with_this_id_found");
-              res.finished = true;
+            res.redirect("/error?r=no_part_with_this_id_found");
+            res.finished = true;
             return;
         }
         if (body.docs != undefined && body.docs != null) {
             var project_doc = body.docs[0];
 
             if (project_doc.deleted) {
-                    res.redirect("/error?r=part_was_deleted");
+                res.redirect("/error?r=part_was_deleted");
                 res.finished = true;
                 return;
             }
@@ -492,12 +492,12 @@ app.get('/part', function (req, res) {
                 pid: sanitizer.sanitize(req.query.id),
                 part_data_str: JSON.stringify(project_doc)
             });
-           
+
             return;
         } else {
-                  res.redirect("/error?r=result_contains_no_part_docs");
-                    res.finished = true;
-                    return;
+            res.redirect("/error?r=result_contains_no_part_docs");
+            res.finished = true;
+            return;
         }
     });
 
@@ -543,7 +543,7 @@ app.get('/project', function (req, res) {
                 pid: sanitizer.sanitize(req.query.id),
                 project_data_str: JSON.stringify(project_doc)
             });
-           
+
             return;
         } else {
             res.redirect("/error?r=result_contains_no_project_docs");
@@ -619,8 +619,8 @@ var project_db_entry_template_file_storage = {
 
 
 var project_db_entry_template_part = {
-    pid:"",
-    amount:0
+    pid: "",
+    amount: 0
 };
 //-> creates a new project and redirect it to the new project page /project id=123 if failed error page
 //< form action = "/create_project"
@@ -774,22 +774,17 @@ io.on('connection', (socket) => {
 
         // project_id: '1337',part_id: 'Nema 17 Stepper Motoro',amount: '1'
 
-        if(!data.project_id || !data.part_id){
+        if (!data.project_id || !data.part_id) {
             console.log("err data not all attr are set");
             socket.emit('error_message_show', {
-                message:"invalid part_add request",
-                for_client_id:data.client_id
+                message: "invalid part_add request",
+                for_client_id: data.client_id
             });
             return;
         }
-
         var amount_to_add = sanitizer.sanitize(data.amount) || 1;
-
         //IF ADDED -> message
-
         //1st get the project from the database
-        
-        
         var q = {
             "selector": {
                 "_id": {
@@ -807,34 +802,34 @@ io.on('connection', (socket) => {
                 });
                 return;
             }
-          
+
             if (body.docs != undefined && body.docs != null) {
                 var project_doc = body.docs[0];
-     
-                console.log(project_doc);
-                
 
-                if (!project_doc.parts){
+                console.log(project_doc);
+
+
+                if (!project_doc.parts) {
                     console.log("no part array present - adding one please check project template json");
                     project_doc.parts = [];
                 }
 
                 //->now we have the document of the project
-               
+
                 //1st we check now if the part is already in the project
                 var was_in = false;
                 for (let index = 0; index < project_doc.parts.length; index++) {
                     const part_element = project_doc.parts[index];
-                    if (part_element.pid && part_element.pid == sanitizer.sanitize(data.part_id)){
+                    if (part_element.pid && part_element.pid == sanitizer.sanitize(data.part_id)) {
                         //PART EXISTING IN PROJECT so we add the amount
-                        project_doc.parts[index].amount = parseInt(project_doc.parts[index].amount,10)+ parseInt(amount_to_add, 10);
+                        project_doc.parts[index].amount = parseInt(project_doc.parts[index].amount, 10) + parseInt(amount_to_add, 10);
                         was_in = true;
                         break;
                     }
-                    
+
                 }
                 //2nd if items was not already existing add a new entry
-                if(!was_in){
+                if (!was_in) {
 
                     //1st check if part exists in database
                     var qpart = {
@@ -884,21 +879,21 @@ io.on('connection', (socket) => {
 
 
                             return;
-                        }else{
+                        } else {
                             socket.emit('error_message_show', {
                                 message: "please add the part first or remove a duplicate from the database",
                                 for_client_id: data.client_id
                             });
                             return;
                         }
-                        
+
                     });
 
-                   
 
 
 
-return;
+
+                    return;
                 }
 
                 //SAFE IN DB AND SEND OK BACK
@@ -933,16 +928,129 @@ return;
 
 
         //last emit response_new_project_data
-    
+
     });
 
 
-    socket.on('request_part_amount_change', (username) => {
+    socket.on('request_part_amount_change', (data) => {
         //project_id
         //
+
+        /*
+{ project_id: '1337',
+  part_id: '8377886795',
+  amount: '136',
+  client_id: '3pmit' }
+        */
         console.log("ch");
+        console.log(data);
+
+        if (!data.project_id || !data.part_id || !data.amount) {
+            console.log("err data not all attr are set");
+            socket.emit('error_message_show', {
+                message: "invalid part_add request",
+                for_client_id: data.client_id
+            });
+            return;
+        }
+
+
+        var qp = {
+            "selector": {
+                "_id": {
+                    "$gt": null
+                },
+                "project_id": sanitizer.sanitize(data.project_id)
+            }
+        };
+        pbm_db_projects.find(qp, (err, body, header) => {
+            if (err) {
+                socket.emit('error_message_show', {
+                    message: err.message,
+                    for_client_id: data.client_id
+                });
+                return;
+            }
+
+            if (body.docs != undefined && body.docs != null) {
+                var project_doc = body.docs[0];
+
+                //1st check if part in project exists
+                if (!project_doc.parts) {
+                    socket.emit('error_message_show', {
+                        message: "part not added to the project",
+                        for_client_id: data.client_id
+                    });
+                    return;
+                }
+
+                //->now we have the document of the project
+
+                //1st we check now if the part is already in the project
+                var was_in = false;
+                for (let index = 0; index < project_doc.parts.length; index++) {
+                    const part_element = project_doc.parts[index];
+                    if (part_element.pid && part_element.pid == sanitizer.sanitize(data.part_id)) {
+                        //PART EXISTING IN PROJECT so we add the amount
+                        project_doc.parts[index].amount = parseInt(data.amount, 10);
+                        was_in = true;
+                        break;
+                    }
+
+                }
+
+                if (was_in) {
+                    //safe in db 
+
+                    //SAFE IN DB AND SEND OK BACK
+                    pbm_db_projects.insert(project_doc, function (err, body) {
+                        if (err) {
+                            console.log(body);
+                            socket.emit('error_message_show', {
+                                message: "Project db save failed",
+                                for_client_id: data.client_id
+                            });
+                            return;
+                        }
+                        //and send a refresh of the project
+                        //TODO BROADCAST and client check projject id for refresh
+                        socket.emit('response_new_project_data', {
+                            project_data_str: project_doc
+                        });
+                        return;
+                    });
+
+                    return;
+                } else {
+                    //thriw error
+                    socket.emit('error_message_show', {
+                        message: "part not added to the project",
+                        for_client_id: data.client_id
+                    });
+
+                    return;
+                }
+
+
+
+
+            } else {
+                //    throw;
+                socket.emit('error_message_show', {
+                    message: err.message,
+                    for_client_id: data.client_id
+                });
+                return;
+            }
+        });
+
+
     });
 
+
+
+
+    //client requests the project document
     socket.on('request_new_project_data', (username) => {
 
         if (username == undefined || username == null || username.project_id == undefined || username.project_id == null) {
