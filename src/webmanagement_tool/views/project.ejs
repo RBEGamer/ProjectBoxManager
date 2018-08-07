@@ -221,8 +221,17 @@
         var partlist_data = null;
         var awesomplete_part_input = null;
 
+ var client_id = 123;
 
+ function makeid() {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
+  for (var i = 0; i < 5; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return text;
+}
 
         function timeConverter(UNIX_timestamp, with_time = false) {
             try {
@@ -272,7 +281,8 @@
         function state_change(_st) {
             socket.emit('request_state_change', {
                 project_id: project_data_str_init.project_id,
-                state: _st
+                state: _st,
+                client_id:client_id
             });
 
         }
@@ -283,7 +293,8 @@
             socket.emit('request_part_add_part', {
                 project_id: project_data_str_init.project_id,
                 part_id: pid,
-                amount: am
+                amount: am,
+                client_id:client_id
             });
         }
 
@@ -312,7 +323,7 @@
                     }
                 }
                 $("#pr_table_body_parts").append("<tr><th scope=\"row\"><a href=\"/parts?pid=" + element.pid + "\" />" +
-                    String(c)++ + "</a></th><td>" +
+                    String(c++) + "</a></th><td>" +
                     "<input type=\"number\" value=" + element.amount +
                     " min=\"0\" style=\"width:50px;\" id=\"part_" + element.pid + "\"/>" +
                     "x <span id=\"part_" + element.pid + "_int\"></span>" +
@@ -331,7 +342,8 @@
                         socket.emit('request_part_amount_change', {
                             project_id: project_data_str_init.project_id,
                             part_id: element.pid,
-                            amount: val
+                            amount: val,
+                            client_id:client_id
                         });
 
 
@@ -397,7 +409,8 @@
             }
         }
         $(document).ready(function () {
-            console.log("ready!");
+            client_id = makeid();
+            console.log("ready: "+ String(client_id));
             //FETCH PARTLIST
             $.get("/partlist.json", function (data) {
                 console.log("Data Loaded: " + JSON.stringify(data));
@@ -445,7 +458,7 @@
 
             socket = io();
             socket.emit('add user', {});
-
+           
             socket.on('response_new_project_data', function (data) {
 
                 clear_tables();
@@ -469,9 +482,18 @@
             });
 
 
+
+             socket.on('error_message_show', function (data) {
+
+                alert(data.message);
+
+            });
+
+
             setInterval(function () {
                 socket.emit('request_new_project_data', {
-                    project_id: project_data_str_init.project_id
+                    project_id: project_data_str_init.project_id,
+                    client_id:client_id
                 });
             }, 3000);
 

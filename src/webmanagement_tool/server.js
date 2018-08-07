@@ -608,14 +608,20 @@ var project_db_entry_template_step_history = {
 var project_db_entry_template_add_properties = {
     key: "TYPE",
     value: "PAID"
-}
+};
 
 
 var project_db_entry_template_file_storage = {
     fid: "3131231",
     name: "3D Files -Thingiverse",
     url: "https://www.thingiverse.com/thing:2988136"
-}
+};
+
+
+var project_db_entry_template_part = {
+    pid:"",
+    amount:0
+};
 //-> creates a new project and redirect it to the new project page /project id=123 if failed error page
 //< form action = "/create_project"
 //method = "POST" >
@@ -759,10 +765,175 @@ io.on('connection', (socket) => {
 
 
 
-    socket.on('request_part_add_part', (username) => {
+    socket.on('request_part_add_part', (data) => {
         //project_id
         //
         console.log("add");
+        console.log(data);
+
+
+        // project_id: '1337',part_id: 'Nema 17 Stepper Motoro',amount: '1'
+
+        if(!data.project_id || !data.part_id){
+            console.log("err data not all attr are set");
+            socket.emit('error_message_show', {
+                message:"invalid part_add request",
+                for_client_id:data.client_id
+            });
+            return;
+        }
+
+        var amount_to_add = sanitizer.sanitize(data.amount) || 1;
+
+        //IF ADDED -> message
+
+        //1st get the project from the database
+        
+        
+        var q = {
+            "selector": {
+                "_id": {
+                    "$gt": null
+                },
+                "project_id": sanitizer.sanitize(data.project_id)
+            }
+        };
+        pbm_db_projects.find(q, (err, body, header) => {
+            if (err) {
+                console.log('Error thrown: ', err.message);
+                socket.emit('error_message_show', {
+                    message: err.message,
+                    for_client_id: data.client_id
+                });
+                return;
+            }
+          
+            if (body.docs != undefined && body.docs != null) {
+                var project_doc = body.docs[0];
+     
+                console.log(project_doc);
+                
+
+                if (!project_doc.parts){
+                    console.log("no part array present - adding one please check project template json");
+                    project_doc.parts = [];
+                }
+
+                //->now we have the document of the project
+               
+                //1st we check now if the part is already in the project
+                var was_in = false;
+                for (let index = 0; index < project_doc.parts.length; index++) {
+                    const part_element = project_doc.parts[index];
+                    if (part_element.pid && part_element.pid == sanitizer.sanitize(data.part_id)){
+                        //PART EXISTING IN PROJECT so we add the amount
+                        project_doc.parts[index].amount = parseInt(project_doc.parts[index].amount,10)+ parseInt(amount_to_add, 10);
+                        was_in = true;
+                        break;
+                    }
+                    
+                }
+                //2nd if items was not already existing add a new entry
+                if(!was_in){
+
+                    //1st check if part exists in database
+                    var qpart = {
+                        "selector": {
+                            "_id": {
+                                "$gt": null
+                            },
+                            "part_id": sanitizer.sanitize(data.part_id)
+                        }
+                    };
+                    pbm_db_parts.find(qpart, (err, bodyp, header) => {
+                        if (err) {
+                            console.log('Error thrown: ', err.message);
+                            socket.emit('error_message_show', {
+                                message: err.message,
+                                for_client_id: data.client_id
+                            });
+                            return;
+                        }
+                        //part exists
+                        if (body.docs.length == 1) {
+                            //2nd create a new part entry and push it to the project
+                            var part_template = project_db_entry_template_part;
+                            part_template.amount = amount_to_add;
+                            part_template.pid = sanitizer.sanitize(data.part_id);
+                            project_doc.parts.push(part_template);
+
+
+                            //SAFE IN DB AND SEND OK BACK
+                            pbm_db_projects.insert(project_doc, function (err, body) {
+                                if (err) {
+                                    console.log(body);
+                                    socket.emit('error_message_show', {
+                                        message: "Project db save failed",
+                                        for_client_id: data.client_id
+                                    });
+                                    return;
+                                }
+                                //and send a refresh of the project
+                                //TODO BROADCAST and client check projject id for refresh
+                                socket.emit('response_new_project_data', {
+                                    project_data_str: project_doc
+                                });
+                                return;
+                            });
+
+
+
+                            return;
+                        }else{
+                            socket.emit('error_message_show', {
+                                message: "please add the part first or remove a duplicate from the database",
+                                for_client_id: data.client_id
+                            });
+                            return;
+                        }
+                        
+                    });
+
+                   
+
+
+
+return;
+                }
+
+                //SAFE IN DB AND SEND OK BACK
+                pbm_db_projects.insert(project_doc, function (err, body) {
+                    if (err) {
+                        console.log(body);
+                        socket.emit('error_message_show', {
+                            message: "Project db save failed",
+                            for_client_id: data.client_id
+                        });
+                        return;
+                    }
+                    //and send a refresh of the project
+                    //TODO BROADCAST and client check projject id for refresh
+                    socket.emit('response_new_project_data', {
+                        project_data_str: project_doc
+                    });
+                    return;
+                });
+
+
+
+            } else {
+                //    throw;
+                socket.emit('error_message_show', {
+                    message: "no project with this id found, was the project deleted",
+                    for_client_id: data.client_id
+                });
+            }
+        });
+
+
+
+        //last emit response_new_project_data
+    
     });
 
 
