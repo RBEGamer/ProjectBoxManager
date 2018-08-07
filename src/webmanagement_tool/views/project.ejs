@@ -31,7 +31,7 @@
 
 
 
-//TODO register all websocket events, history, add step dialog
+    //TODO register all websocket events, history, add step dialog
 
 
 
@@ -70,7 +70,7 @@
                 </table>
 
 
-               
+
             </div>
         </div>
         <!-- /.col-md-4 -->
@@ -82,14 +82,14 @@
         <div class="card-body">
             <p class="text-white m-0">CHANGE STATE</p>
             <div class="btn-group" role="group" aria-label="Basic example">
-                    <button type="button" class="btn btn-success" onclick="state_change('open')">OPEN</button>
-                    <button type="button" class="btn btn-warning" onclick="state_change('waiting_for_step')">WAITING_FOR_STEP</button>
-                    <button type="button" class="btn btn-warning" onclick="state_change('waiting_for_parts')">WAITING_FOR_PARTS</button>
+                <button type="button" class="btn btn-success" onclick="state_change('open')">OPEN</button>
+                <button type="button" class="btn btn-warning" onclick="state_change('waiting_for_step')">WAITING_FOR_STEP</button>
+                <button type="button" class="btn btn-warning" onclick="state_change('waiting_for_parts')">WAITING_FOR_PARTS</button>
 
-                    <button type="button" class="btn btn-info" onclick="state_change('pending')" >PENDING</button>
-                    <button type="button" class="btn btn-success" onclick="state_change('ready_shipping')">READY_SHIPPING</button>
-                    <button type="button" class="btn btn-danger" onclick="state_change('closed')">CLOSED</button>
-                  </div>
+                <button type="button" class="btn btn-info" onclick="state_change('pending')">PENDING</button>
+                <button type="button" class="btn btn-success" onclick="state_change('ready_shipping')">READY_SHIPPING</button>
+                <button type="button" class="btn btn-danger" onclick="state_change('closed')">CLOSED</button>
+            </div>
         </div>
     </div>
 
@@ -202,7 +202,7 @@
     <script src="./bower_components/jquery/dist/jquery.js"></script>
     <script src="./bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
     <script type='text/javascript' src='./bower_components/chart.js/dist/Chart.bundle.js'></script>
-       <script src="/2.0.4_socket.io.js"></script>
+    <script src="/2.0.4_socket.io.js"></script>
     <script type='text/javascript' src='./bower_components/awesomplete/awesomplete.min.js'></script>
 
 
@@ -269,13 +269,13 @@
             //send request to increase part amount
         }
 
-function state_change(_st){
-    socket.emit('request_state_change', {
-                            project_id: project_data_str_init.project_id,
-                            state:_st
-                        });
+        function state_change(_st) {
+            socket.emit('request_state_change', {
+                project_id: project_data_str_init.project_id,
+                state: _st
+            });
 
-}
+        }
         function add_part_to_project() {
             var pid = $("#add_new_part_item_input").val();
             var am = $("#add_new_part_amount_input").val();
@@ -292,6 +292,7 @@ function state_change(_st){
                 return;
             }
             //GET 
+            var c = 0;
             for (let index = 0; index < _part_arr.length; index++) {
                 var element = _part_arr[index];
                 if (element.purpose == undefined || element.purpose == null) {
@@ -305,18 +306,19 @@ function state_change(_st){
                         const element_part = partlist_data.parts[index];
                         if (element_part.part_id == element.pid) {
                             element.title = element_part.title;
+                            element.purpose = element_part.description;
                             break;
                         }
                     }
                 }
                 $("#pr_table_body_parts").append("<tr><th scope=\"row\"><a href=\"/parts?pid=" + element.pid + "\" />" +
-                    element.pid + "</a></th><td>" +
+                    String(c)++ + "</a></th><td>" +
                     "<input type=\"number\" value=" + element.amount +
                     " min=\"0\" style=\"width:50px;\" id=\"part_" + element.pid + "\"/>" +
                     "x <span id=\"part_" + element.pid + "_int\"></span>" +
                     "</td><td>" +
-                    "<span id=\"pr_client\" title=\"" + element.purpose + "\">" + element.title +
-                    "</span></td></tr>");
+                    "<span id=\"pr_client\" title=\"" + element.purpose + "\"><a href=\"/parts?pid=" + element.pid + "\" />" + element.title +
+                    "</a></span></td></tr>");
                 //TODO BUGGY
                 $("#part_" + element.pid + "").change(function () {
                     $("#part_" + element.pid + "_int").html("<input id=\"part_" + element.pid +
