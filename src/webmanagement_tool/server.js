@@ -417,7 +417,8 @@ app.get('/partlist.json', function (req, res) {
         "selector": {
             "_id": {
                 "$gt": null
-            }
+            },
+          
         }
     };
     pbm_db_parts.find(q, (err, body, header) => {
@@ -430,6 +431,10 @@ app.get('/partlist.json', function (req, res) {
         if (body.docs.length > 0) {
             for (let index = 0; index < body.docs.length; index++) {
                 const element = body.docs[index];
+                //SKIP HIDDEN PARTS
+                if (element.deleted){
+                    continue;
+                }
                 arr.push(element);
 
                 arr_keyword.push(element.part_id);
@@ -449,12 +454,8 @@ app.get('/partlist.json', function (req, res) {
 
 
 app.get('/part', function (req, res) {
-    res.render('part.ejs', {
-        pid: null,
-        project_data_str: null
-    });
-    res.finished = true;
-    return;
+
+   
 
 
     var q = {
@@ -462,40 +463,41 @@ app.get('/part', function (req, res) {
             "_id": {
                 "$gt": null
             },
-            "project_id": req.query.id
+            "part_id": req.query.id
         }
     };
-    pbm_db_projects.find(q, (err, body, header) => {
+    pbm_db_parts.find(q, (err, body, header) => {
         if (err) {
             console.log('Error thrown: ', err.message);
-            //   res.redirect("/error?r=db_query_error_project_find");
-            // res.finished = true;
+               res.redirect("/error?r=db_query_error_part_find");
+                res.finished = true;
             return;
         }
         if (body.docs.length <= 0) {
             console.log('Error thrown: no projects found');
-            //    res.redirect("/error?r=no_project_with_this_id_found");
-            //  res.finished = true;
+                res.redirect("/error?r=no_part_with_this_id_found");
+              res.finished = true;
             return;
         }
         if (body.docs != undefined && body.docs != null) {
             var project_doc = body.docs[0];
 
             if (project_doc.deleted) {
-                //    res.redirect("/error?r=project_was_deleted");
+                    res.redirect("/error?r=part_was_deleted");
                 res.finished = true;
                 return;
             }
 
             res.render('part.ejs', {
                 pid: sanitizer.sanitize(req.query.id),
-                project_data_str: JSON.stringify(project_doc)
+                part_data_str: JSON.stringify(project_doc)
             });
-            res.finished = true;
+           
             return;
         } else {
-            //      res.redirect("/error?r=result_contains_no_project_docs");
-            //        res.finished = true;
+                  res.redirect("/error?r=result_contains_no_part_docs");
+                    res.finished = true;
+                    return;
         }
     });
 
@@ -505,12 +507,6 @@ app.get('/part', function (req, res) {
 app.get('/project', function (req, res) {
 
 
-    res.render('project.ejs', {
-        pid: null,
-        project_data_str: null
-    });
-    res.finished = true;
-    return;
 
 
     var q = {
@@ -518,7 +514,7 @@ app.get('/project', function (req, res) {
             "_id": {
                 "$gt": null
             },
-            "project_id": req.query.id
+            "project_id": sanitizer.sanitize(req.query.id)
         }
     };
     pbm_db_projects.find(q, (err, body, header) => {
@@ -547,11 +543,12 @@ app.get('/project', function (req, res) {
                 pid: sanitizer.sanitize(req.query.id),
                 project_data_str: JSON.stringify(project_doc)
             });
-            res.finished = true;
+           
             return;
         } else {
             res.redirect("/error?r=result_contains_no_project_docs");
             res.finished = true;
+            return;
         }
     });
 

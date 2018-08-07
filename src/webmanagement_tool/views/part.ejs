@@ -33,7 +33,6 @@
 
 
 
-//TODO SHOW ALL PART INFO AND BOX LOCATION
 
 
     <div class="half_transparency_back">
@@ -70,28 +69,14 @@
                 </table>
 
 
-               
+
             </div>
         </div>
         <!-- /.col-md-4 -->
     </div>
     <!-- /.row -->
 
-    <!-- Call to Action Well  -->
-    <div class="card text-white bg-secondary my-4 text-center">
-        <div class="card-body">
-            <p class="text-white m-0">CHANGE STATE</p>
-            <div class="btn-group" role="group" aria-label="Basic example">
-                    <button type="button" class="btn btn-success" onclick="state_change('open')">OPEN</button>
-                    <button type="button" class="btn btn-warning" onclick="state_change('waiting_for_step')">WAITING_FOR_STEP</button>
-                    <button type="button" class="btn btn-warning" onclick="state_change('waiting_for_parts')">WAITING_FOR_PARTS</button>
 
-                    <button type="button" class="btn btn-info" onclick="state_change('pending')" >PENDING</button>
-                    <button type="button" class="btn btn-success" onclick="state_change('ready_shipping')">READY_SHIPPING</button>
-                    <button type="button" class="btn btn-danger" onclick="state_change('closed')">CLOSED</button>
-                  </div>
-        </div>
-    </div>
 
 
 
@@ -102,7 +87,9 @@
                 <div class="card-body">
                     <h2 class="card-title">STEP HISTORY</h2>
                     <p class="card-text">
-                        <div name="sel_room_table" id="sel_room_table"></div>
+                       
+
+
                     </p>
                 </div>
                 <div class="card-footer">
@@ -117,54 +104,13 @@
                 <div class="card-body">
                     <h2 class="card-title">PARTS</h2>
 
-                    <table class="table table-dark">
-                        <thead>
-                            <tr>
-                                <th scope="col">PID</th>
-                                <th scope="col">Amount</th>
-                                <th scope="col">Title</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pr_table_body_parts">
-                        </tbody>
-                    </table>
+                  
 
+                   
+                 
+                   
 
-                    </tbody>
-                    </table>
-
-                    <span>
-                        <h3>ADD PART</h3>
-                    </span>
-
-                    <table class="table table-dark">
-                        <thead>
-                            <tr>
-                                <th scope="col">+</th>
-                                <th scope="col">PART_ID</th>
-                                <th scope="col">-</th>
-                            </tr>
-                        </thead>
-                        <tbody id="">
-
-                            <tr>
-                                <th scope="row">
-                                    <input type="number" min="1" value="1" id="add_new_part_amount_input">
-                                </th>
-                                <td>
-                                    <input name="add_new_part_item_input" id="add_new_part_item_input" list="part_dataset" />
-                                    <datalist id="part_dataset"></datalist>
-                                </td>
-                                <td>
-                                    <input type="button" class="btn btn-success" onclick="add_part_to_project()" value="ADD" />
-                                </td>
-                            </tr>
-
-                        </tbody>
-                    </table>
-
-                    </tbody>
-                    </table>
+                  
 
 
                 </div>
@@ -201,61 +147,29 @@
 
     <script src="./bower_components/jquery/dist/jquery.js"></script>
     <script src="./bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script type='text/javascript' src='./bower_components/chart.js/dist/Chart.bundle.js'></script>
-       <script src="/2.0.4_socket.io.js"></script>
+    <script src="/2.0.4_socket.io.js"></script>
     <script type='text/javascript' src='./bower_components/awesomplete/awesomplete.min.js'></script>
 
 
 
 
     <script>
-        var socket = null;
-
-
-
-        var project_data_str = <%- project_data_str %>;
-        var project_data_str_init = <%- project_data_str %>;
-        var project_data = null; //json parsed data
-
-
-        var partlist_data = null;
-        var awesomplete_part_input = null;
-
-
-
-
   
+        
 
-     
 
 
-      
+
+
+
+
+
+
         $(document).ready(function () {
-            console.log("ready!");
+        //    console.log("ready!");
             //FETCH PARTLIST
-            $.get("/partlist.json", function (data) {
-                console.log("Data Loaded: " + JSON.stringify(data));
-                try {
-                    partlist_data = JSON.parse(data);
-                } catch (error) {
-                    var objectConstructor = {}.constructor;
-                    if (data.constructor === objectConstructor) {
-                        partlist_data = data;
-                    } else {
-                        partlist_data = null;
-                    }
-                    //LOAD TABLE AFTER FETCH
-                    parse_project_data_parts(project_data);
-
-                    var list = document.getElementById('part_dataset');
-                    partlist_data.part_search_list.forEach(function (item) {
-                        var option = document.createElement('option');
-                        option.value = item;
-                        list.appendChild(option);
-                    });
-                }
-                console.log("partlist fatched");
-            });
+           
+           
 
 
 
@@ -263,47 +177,47 @@
 
 
             //CHECK IF IS ALREADY A JS OBJECT -> EJS else PARSE IT
-            var objectConstructor = {}.constructor;
-            if (project_data_str.constructor === objectConstructor) {
-                project_data = project_data_str;
-            } else {
-                try {
-                    project_data = JSON.parse(project_data_str);
-                } catch (err) {
-
-                }
-            }
-            parse_project_data_overview_table(project_data);
-
-
-
-            socket = io();
-            socket.emit('add user', {});
-
-            socket.on('response_new_project_data', function (data) {
-
-                clear_tables();
-                var objectConstructor = {}.constructor;
-                if (project_data_str.constructor === objectConstructor) {
-                    project_data = data;
-                } else {
-                    try {
-                        project_data = JSON.parse(data);
-                    } catch (err) {
-
-                    }
-                }
-                parse_project_data_overview_table(project_data.project_data_str);
+       //     var objectConstructor = {}.constructor;
+       //     if (project_data_str.constructor === objectConstructor) {
+       //         project_data = project_data_str;
+       //     } else {
+       //         try {
+       //             project_data = JSON.parse(project_data_str);
+       //         } catch (err) {
+//
+       //         }
+       //     }
+       //     parse_project_data_overview_table(project_data);
 
 
-                if (partlist_data != undefined && partlist_data != null) {
-                    parse_project_data_parts(project_data.project_data_str);
-                }
 
-            });
+            //socket = io();
+            //socket.emit('add user', {});
+//
+            //socket.on('response_new_project_data', function (data) {
+//
+            //    clear_tables();
+            //    var objectConstructor = {}.constructor;
+            //    if (project_data_str.constructor === objectConstructor) {
+            //        project_data = data;
+            //    } else {
+            //        try {
+            //            project_data = JSON.parse(data);
+            //        } catch (err) {
+//
+            //        }
+            //    }
+            //    parse_project_data_overview_table(project_data.project_data_str);
+//
+//
+            //    if (partlist_data != undefined && partlist_data != null) {
+            //        parse_project_data_parts(project_data.project_data_str);
+            //    }
+//
+            //});
 
 
-          
+
 
 
 
