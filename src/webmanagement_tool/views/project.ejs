@@ -325,36 +325,26 @@
                 $("#pr_table_body_parts").append("<tr><th scope=\"row\"><a href=\"/parts?pid=" + element.pid + "\" />" +
                     String(c++) + "</a></th><td>" +
                     "<input type=\"number\" value=" + element.amount +
-                    " min=\"0\" style=\"width:50px;\" id=\"part_" + element.pid + "\"/>" +
+                    " min=\"0\" style=\"width:50px;\" id=\"part_" + element.pid + "\" onChange=\"part_change_req(this, 'part_"+element.pid+"','"+element.pid+"')\"/>" +
                     "x <span id=\"part_" + element.pid + "_int\"></span>" +
                     "</td><td>" +
                     "<span id=\"pr_client\" title=\"" + element.purpose + "\"><a href=\"/parts?pid=" + element.pid + "\" />" + element.title +
                     "</a></span></td></tr>");
-                //TODO BUGGY
-                $("#part_" + element.pid + "").change(function () {
-                    $("#part_" + element.pid + "_int").html("<input id=\"part_" + element.pid +
-                        "_btn\" type=\"button\" value=\"SAVE\"/>");
-                    $("#part_" + element.pid + "_btn").click(function () {
-                        $("#part_" + element.pid + "_int").html("");
-                        var val = $("#part_" + element.pid + "").val();
-                        alert(val);
-
-                        socket.emit('request_part_amount_change', {
-                            project_id: project_data_str_init.project_id,
-                            part_id: element.pid,
-                            amount: val,
-                            client_id:client_id
-                        });
-
-
-                    });
-
-
-                });
             }
         }
 
 
+
+
+function part_change_req(thelist, theinput, pid){
+    var val = $("#" + theinput).val();
+                        socket.emit('request_part_amount_change', {
+                            project_id: project_data_str_init.project_id,
+                            part_id: pid,
+                            amount: val,
+                            client_id:client_id
+                        });
+}
 
 
         function parse_project_data_parts(_dt) {

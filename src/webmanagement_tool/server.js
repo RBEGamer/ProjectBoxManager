@@ -196,7 +196,8 @@ const valid_categories = [
 "OPTIC",
 "ELECTRIC",
 "TOOLS",
-"MISC"
+"MISC",
+"CHEMICAL"
 ];
 
 function generate_part_id() {
@@ -873,7 +874,8 @@ io.on('connection', (socket) => {
                             console.log('Error thrown: ', err.message);
                             socket.emit('error_message_show', {
                                 message: err.message,
-                                for_client_id: data.client_id
+                                for_client_id: data.client_id,
+                                error: true
                             });
                             return;
                         }
@@ -892,7 +894,8 @@ io.on('connection', (socket) => {
                                     console.log(body);
                                     socket.emit('error_message_show', {
                                         message: "Project db save failed",
-                                        for_client_id: data.client_id
+                                        for_client_id: data.client_id,
+                                        error: true
                                     });
                                     return;
                                 }
@@ -910,7 +913,8 @@ io.on('connection', (socket) => {
                         } else {
                             socket.emit('error_message_show', {
                                 message: "please add the part first or remove a duplicate from the database",
-                                for_client_id: data.client_id
+                                for_client_id: data.client_id,
+                                error: true
                             });
                             return;
                         }
@@ -930,7 +934,8 @@ io.on('connection', (socket) => {
                         console.log(body);
                         socket.emit('error_message_show', {
                             message: "Project db save failed",
-                            for_client_id: data.client_id
+                            for_client_id: data.client_id,
+                            error: true
                         });
                         return;
                     }
@@ -948,7 +953,8 @@ io.on('connection', (socket) => {
                 //    throw;
                 socket.emit('error_message_show', {
                     message: "no project with this id found, was the project deleted",
-                    for_client_id: data.client_id
+                    for_client_id: data.client_id,
+                    error: true
                 });
             }
         });
@@ -977,7 +983,8 @@ io.on('connection', (socket) => {
             console.log("err data not all attr are set");
             socket.emit('error_message_show', {
                 message: "invalid part_add request",
-                for_client_id: data.client_id
+                for_client_id: data.client_id,
+                error: true
             });
             return;
         }
@@ -995,7 +1002,8 @@ io.on('connection', (socket) => {
             if (err) {
                 socket.emit('error_message_show', {
                     message: err.message,
-                    for_client_id: data.client_id
+                    for_client_id: data.client_id,
+                    error: true
                 });
                 return;
             }
@@ -1007,7 +1015,8 @@ io.on('connection', (socket) => {
                 if (!project_doc.parts) {
                     socket.emit('error_message_show', {
                         message: "part not added to the project",
-                        for_client_id: data.client_id
+                        for_client_id: data.client_id,
+                        error: true
                     });
                     return;
                 }
@@ -1026,6 +1035,17 @@ io.on('connection', (socket) => {
                         project_doc.parts[index].amount = parseInt(data.amount, 10);
                         //if amount == 0 delete part
                         if (project_doc.parts[index].amount <= 0){
+
+                            var new_part_array = [];
+
+                            for (let indexpd = 0; indexpd < project_doc.parts.length; indexpd++) {
+                                const parts_element = project_doc.parts[indexpd];
+                                if(indexpd != index){
+                                    new_part_array.push(parts_element);
+                                }
+                            }
+
+                            project_doc.parts = new_part_array;
                             //TODO REMOVE PART
                             //1st create new part array
                             //safe to prokject doc
@@ -1044,8 +1064,9 @@ io.on('connection', (socket) => {
                         if (err) {
                             console.log(body);
                             socket.emit('error_message_show', {
-                                message: "Project db save failed",
-                                for_client_id: data.client_id
+                                message: "Project db save failed:" + err.message,
+                                for_client_id: data.client_id,
+                                error: true
                             });
                             return;
                         }
@@ -1054,6 +1075,13 @@ io.on('connection', (socket) => {
                         socket.emit('response_new_project_data', {
                             project_data_str: project_doc
                         });
+
+                        socket.emit('error_message_show', {
+                            message: "PART AMOUNT CHANGED",
+                            for_client_id: data.client_id,
+                            error:false
+                        });
+
                         return;
                     });
 
@@ -1062,20 +1090,18 @@ io.on('connection', (socket) => {
                     //thriw error
                     socket.emit('error_message_show', {
                         message: "part not added to the project",
-                        for_client_id: data.client_id
+                        for_client_id: data.client_id,
+                        error: true
                     });
 
                     return;
                 }
-
-
-
-
             } else {
                 //    throw;
                 socket.emit('error_message_show', {
                     message: err.message,
-                    for_client_id: data.client_id
+                    for_client_id: data.client_id,
+                    error: true
                 });
                 return;
             }

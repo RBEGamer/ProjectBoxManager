@@ -462,9 +462,9 @@
             for (let index = 0; index < valid_categories.length; index++) {
                 const element = valid_categories[index];
                 if(index == 0){
-                    $("#catRadio").append("<input type=\"radio\" name=\"category\" id=\"cat_" + element + "\" value=\"" + element + "\" checked=\"checked\" /> <label for=\"cat_" + element + "\">" + element + "</label>");
+                    $("#catRadio").append("<input type=\"radio\" name=\"category\" id=\"cat_" + element + "\" value=\"" + element + "\" checked=\"checked\" /> <label for=\"cat_" + element + "\">" + element + "</label><br>");
                 }else{
-                    $("#catRadio").append("<input type=\"radio\" name=\"category\" id=\"cat_" + element + "\" value=\"" + element + "\" /> <label for=\"cat_" + element + "\">" + element + "</label>");
+                    $("#catRadio").append("<input type=\"radio\" name=\"category\" id=\"cat_" + element + "\" value=\"" + element + "\" /> <label for=\"cat_" + element + "\">" + element + "</label><br>");
                 }
             }
 
