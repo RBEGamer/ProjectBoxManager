@@ -146,7 +146,8 @@ app.get('/parts', function (req, res) {
 
         if (body.docs != undefined && body.docs != null) {
             res.render('partlist.ejs', {
-                parts: JSON.stringify({ parts: pro })//.projects -> array
+                parts: JSON.stringify({ parts: pro }),//.projects -> array
+                valid_categories: valid_categories
             });
         } else {
             res.redirect("/error?r=result_contains_no_parts_docs");
@@ -174,7 +175,8 @@ var new_part_db_entry_template = {
 
     ],
     datasheet_url: "",
-    deleted: false
+    deleted: false,
+    category:""
 };
 
 
@@ -186,7 +188,16 @@ var new_part_db_additional_attributes_template = {
 var new_part_db_supplier_template = {
     shopname: "",
     url: ""
-}
+};
+
+
+const valid_categories = [
+"MECHANIC",
+"OPTIC",
+"ELECTRIC",
+"TOOLS",
+"MISC"
+];
 
 function generate_part_id() {
     return randomstring.generate({
@@ -236,8 +247,25 @@ app.post('/create_part', function (req, res) {
         tmp.additional_attributes = [];
     }
 
-
-
+    
+    //CHECK FOR VALID CATEGORY
+    if (req.body.category && valid_categories){
+        var was_in_cat = false;
+        for (let indexc = 0; indexc < valid_categories.length; indexc++) {
+            const elementc = array[indexc];
+            if (sanitizer.sanitize(req.body.category) == elementc){
+                was_in_cat = true;
+                tmp.category = elementc;
+                break;
+            }
+        }
+        if (!was_in_cat){
+            tmp.category = "MISC"; 
+        }
+    }else{
+        tmp.category = "MISC"; //INVALID CATEGORY> -> is misc category
+    }
+    //check part supplier
     if (req.body.new_part_supplier) {
         for (let indexsp = 0; indexsp < req.body.new_part_supplier.length; indexsp++) {
             const element = array[indexsp];
@@ -988,11 +1016,20 @@ io.on('connection', (socket) => {
 
                 //1st we check now if the part is already in the project
                 var was_in = false;
+
+
+                
                 for (let index = 0; index < project_doc.parts.length; index++) {
                     const part_element = project_doc.parts[index];
                     if (part_element.pid && part_element.pid == sanitizer.sanitize(data.part_id)) {
                         //PART EXISTING IN PROJECT so we add the amount
                         project_doc.parts[index].amount = parseInt(data.amount, 10);
+                        //if amount == 0 delete part
+                        if (project_doc.parts[index].amount <= 0){
+                            //TODO REMOVE PART
+                            //1st create new part array
+                            //safe to prokject doc
+                        }
                         was_in = true;
                         break;
                     }

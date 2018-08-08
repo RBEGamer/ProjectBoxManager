@@ -201,6 +201,14 @@
 
 
 
+        <div class="form-group">
+            <legend>PART CATEGORY</legend>
+            <p>
+                <label>Category</label>
+              <div id="catRadio"></div>
+            </p>
+       </div>
+
 
         <div class="form-group">
         <label for="new_part_aa">Additional Attributes</label>
@@ -245,6 +253,13 @@
         var socket = null;
 
         var projects_list_str = <%- parts %>;
+        var valid_categories = [];
+
+
+        <% for(var i=0; i< valid_categories.length; i++) {%>
+            valid_categories.push("<%- valid_categories[i] %>");
+        <% } %>
+
 
         var card_html_template_str = "";
 
@@ -412,8 +427,22 @@
 
         $(document).ready(function () {
 
+            $("#catRadio").html("");
+            document.getElementById("catRadio").textContent = "";
 
-
+            for (let index = 0; index < valid_categories.length; index++) {
+                const element = valid_categories[index];
+                if(index == 0){
+                    $("#catRadio").append("<input type=\"radio\" name=\"category\" id=\"cat_" + element + "\" value=\"" + element + "\" checked=\"checked\" /> <label for=\"cat_" + element + "\">" + element + "</label>");
+                }else{
+                    $("#catRadio").append("<input type=\"radio\" name=\"category\" id=\"cat_" + element + "\" value=\"" + element + "\" /> <label for=\"cat_" + element + "\">" + element + "</label>");
+                }
+                
+                /*
+<input type="radio" name="category" id="cat_" value="small" checked="checked" />
+                <label for="sizeSmall">small</label>
+                */
+            }
             // FOR SUPPLIER TEXT FILEDS
             var max_fields = 10;
             var wrapper_supplier = $(".new_part_supplier_container");
@@ -463,6 +492,15 @@
 
             $('#new_part_tags').tagsInput();
 
+
+            
+
+            if(valid_categories){
+                for (let index = 0; index < valid_categories.length; index++) {
+                    const element = valid_categories[index];
+                    //TODO CREATE LISTBOX FOR INSERT PART AND FOR SEARCH
+                }
+            }
 
             $.get("/card_template_parts.html", function (data) {
                 card_html_template_str = data;
