@@ -92,8 +92,19 @@
 
 
     <div class="row my-12">
-        <div class="col-lg-12" style="height:50px; width:100%; clear:both;">
-            <input type="text" id="searchInput" onkeyup="filter_function()" placeholder="search for Parts">
+        <div class="col-lg-8" style="height:50px; width:100%; clear:both;">
+            <input type="text" id="searchInput" onkeyup="filter_function()" placeholder="search for Parts" />
+
+           </div>
+            <div class="col-lg-4" style="height:50px; width:100%; clear:both;">
+
+
+<select  id="catSel" name="thelist" onChange="combo(this, 'theinput')" onMouseOut="comboInit(this, 'theinput')">
+    <option value="ALL">ALL</option>
+
+</select>
+
+
         </div>
     </div>
 
@@ -254,7 +265,7 @@
 
         var projects_list_str = <%- parts %>;
         var valid_categories = [];
-
+    var user_sel_category = "ALL";
 
         <% for(var i=0; i< valid_categories.length; i++) {%>
             valid_categories.push("<%- valid_categories[i] %>");
@@ -295,8 +306,18 @@
             var input = document.getElementById('searchInput');
             var filter = input.value.toLowerCase();
             //if empty show all
-            if (filter == "") {
+            if (filter == "" && user_sel_category == "ALL") {
                 parse_part_list_and_gen_tables(items);
+                return;
+            }else if (filter == ""){
+                var it_cat_list = [];
+                 for (i = 0; i < items.length; i++) {
+                 if (user_sel_category == "ALL" || (items[i].category && user_sel_category == items[i].category)) {
+                         it_cat_list.push(items[i]);
+                         continue;
+                     }
+                }
+                 parse_part_list_and_gen_tables(it_cat_list);
                 return;
             }
 
@@ -307,7 +328,7 @@
                     console.log("item:" + items[i]._id + " has no title attr");
 
                 } else {
-                    if (items[i].title.toLowerCase().indexOf(filter) > -1) {
+                    if (items[i].title.toLowerCase().indexOf(filter) > -1 && (user_sel_category == "ALL" || (items[i].category && user_sel_category == items[i].category))) {
                         items_filtered.push(items[i]);
                         continue;
                     }
@@ -319,7 +340,7 @@
                     continue;
                 }
                 for (j = 0; j < items[i].keywords.length; j++) {
-                    if (items[i].keywords[j].toLowerCase().indexOf(filter) > -1) {
+                    if (items[i].keywords[j].toLowerCase().indexOf(filter) > -1 && (user_sel_category == "ALL" || (items[i].category && user_sel_category == items[i].category))) {
                         items_filtered.push(items[i]);
                         continue;
                     }
@@ -422,7 +443,15 @@
         }
 
 
+    function comboInit(thelist) {
+    
+        
+    }
 
+    function combo(thelist, theinput) {  
+        user_sel_category = $('#catSel option:selected').text();
+        filter_function();
+    }
 
 
         $(document).ready(function () {
@@ -437,12 +466,17 @@
                 }else{
                     $("#catRadio").append("<input type=\"radio\" name=\"category\" id=\"cat_" + element + "\" value=\"" + element + "\" /> <label for=\"cat_" + element + "\">" + element + "</label>");
                 }
-                
-                /*
-<input type="radio" name="category" id="cat_" value="small" checked="checked" />
-                <label for="sizeSmall">small</label>
-                */
             }
+
+            //CREATE CATEGORY SEACH LIST ELEMENT OPTIONS 
+                $("#catSel").html("");
+                document.getElementById("catSel").textContent = "";
+                  $("#catSel").append("<option value=" + "ALL" + ">" + "ALL" + "</option>");
+                for (let index = 0; index < valid_categories.length; index++) {
+                        $("#catSel").append("<option value=" + valid_categories[index]+ ">" + valid_categories[index] + "</option>");
+                }
+
+
             // FOR SUPPLIER TEXT FILEDS
             var max_fields = 10;
             var wrapper_supplier = $(".new_part_supplier_container");
