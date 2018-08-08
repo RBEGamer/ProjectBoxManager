@@ -38,7 +38,7 @@
 
 
 
-* * = WIP/PLANNED
+### * = WIP/PLANNED
 
 ## USED ARCHITECTURE
 
