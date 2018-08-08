@@ -15,11 +15,38 @@
 * automatic stock alerts
 * automatic inventur system
 
+
+## PROJECT
+* states
+* step/activity histroy
+* part management
+* * gerber/3d/other file upload
+* * git integration for sourceocode
+
+
+
+
+
+
+## PART MANAGEMENT
+* supplier info
+* stock info
+* place for notes
+* additional attributes
+* datasheet upload
+* image upload
+
+
+
+* *= WIP/PLANNED
+
 ## USED ARCHITECTURE
 
 * BACKEND: NodeJS
-* DATABASE: ApacheCoucDB
+* DATABASE: ApacheCouchDB
 * FRONTEND: Bootstrap 4.0, EJS, SocketIO
+
+
 
 ## SCREENSHOTS (WIP  09.08.2018)
 
