@@ -12,6 +12,8 @@
 * using nfc tag to identifiy project parts and boxes
 * easy next step monitoring
 * easy part storage manangement (barcode scanner planned)
+* automatic stock alerts
+* automatic inventur system
 
 ## USED ARCHITECTURE
 
@@ -19,8 +21,19 @@
 * DATABASE: ApacheCoucDB
 * FRONTEND: Bootstrap 4.0, EJS, SocketIO
 
-## SCREENSHOTS (FINAL RESULT)
-later :)
+## SCREENSHOTS (WIP  09.08.2018)
+
+## LIST OF ALL PROJECTS (interactive card with more information on mouseover)
+![GitHub Logo](/documentation/projects_list.png)
+
+
+## PROJECT STATE SYSTEM (easy expandable for your project workflow)
+![GitHub Logo](/documentation/project_states.png)
+
+
+
+## PARTS LIST (show parts, sort them, stock warning)
+![GitHub Logo](/documentation/part_list.png)
 
 
 ## SETUP
