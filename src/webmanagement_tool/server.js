@@ -1149,7 +1149,7 @@ io.on('connection', (socket) => {
 
 
 //INVENTUR CRONJOB ALL 2 HOURS
-cron.schedule('* */2 * * *', function () {
+cron.schedule('* * */2 * * *', function () {
     console.log('running inventur task');
     //1st hole alle parts
     var q = {
