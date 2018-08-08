@@ -20,6 +20,7 @@ var barcode = require('barcode');
 var sanitizer = require('sanitizer');
 var port = process.env.PORT || config.webserver_default_port || 3000;
 var fileUpload = require('express-fileupload');
+var cron = require('node-cron');
 //----------------------------- EXPRESS APP SETUP ------------------------------------------//
 app.set('trust proxy', 1);
 app.use(function (req, res, next) {
@@ -75,37 +76,6 @@ nano.db.create(config.couchdb_db_name_parts, function () {
 
 
 
-// CREATES A LIST OF ALL INCONS INCL. NAME AND FILEPATH
-function readFiles(dirname, dirname_webserver, onFileContent, onError) {
-    fs.readdir(dirname, function (err, filenames) {
-        if (err) {
-            onError(err);
-            return;
-        }
-        var file_array = [];
-
-        for (let index = 0; index < filenames.length; index++) {
-            const element = filenames[index];
-            file_array.push({
-                type: "icon",
-                abs_path: dirname_webserver + "/" + element,
-                filename: element
-            });
-        }
-        var json_content = {
-            part_icons: file_array
-        };
-        fs.writeFileSync(dirname + "/part_icons_list.json", JSON.stringify(json_content), {
-            encoding: 'utf8',
-            flag: 'w'
-        })
-        console.log("###  create part file list");
-    });
-}
-var data = {};
-readFiles('./public/img/part_icons', '/img/part_icons', function (filename, content) { }, function (err) {
-    console.log("[ERR] : cant create part_icons_list.json");
-});
 
 
 
@@ -176,7 +146,12 @@ var new_part_db_entry_template = {
     ],
     datasheet_url: "",
     deleted: false,
-    category:""
+    category: "",
+    inventur_state: {
+        last_inventur: "",
+        inventur_finished: "",
+        inventur_active: false
+    },
 };
 
 
@@ -192,12 +167,12 @@ var new_part_db_supplier_template = {
 
 
 const valid_categories = [
-"MECHANIC",
-"OPTIC",
-"ELECTRIC",
-"TOOLS",
-"MISC",
-"CHEMICAL"
+    "MECHANIC",
+    "OPTIC",
+    "ELECTRIC",
+    "TOOLS",
+    "MISC",
+    "CHEMICAL"
 ];
 
 function generate_part_id() {
@@ -248,22 +223,22 @@ app.post('/create_part', function (req, res) {
         tmp.additional_attributes = [];
     }
 
-    
+
     //CHECK FOR VALID CATEGORY
-    if (req.body.category && valid_categories){
+    if (req.body.category && valid_categories) {
         var was_in_cat = false;
         for (let indexc = 0; indexc < valid_categories.length; indexc++) {
             const elementc = array[indexc];
-            if (sanitizer.sanitize(req.body.category) == elementc){
+            if (sanitizer.sanitize(req.body.category) == elementc) {
                 was_in_cat = true;
                 tmp.category = elementc;
                 break;
             }
         }
-        if (!was_in_cat){
-            tmp.category = "MISC"; 
+        if (!was_in_cat) {
+            tmp.category = "MISC";
         }
-    }else{
+    } else {
         tmp.category = "MISC"; //INVALID CATEGORY> -> is misc category
     }
     //check part supplier
@@ -308,6 +283,20 @@ app.post('/create_part', function (req, res) {
             console.log(err);
         });
     }
+
+
+
+    //INVENTUR SYSTEM SETUP
+
+    //inventur_state: {
+    //    last_inventur: "",
+    //        inventur_finished: "",
+    //            inventur_active: true
+    //},
+
+    tmp.inventur_state.last_inventur = Math.round(new Date().getTime() / 1000);
+    tmp.inventur_state.inventur_active = false;
+    tmp.inventur_state.inventur_finished = Math.round(new Date().getTime() / 1000);
 
 
     pbm_db_parts.insert(tmp, function (err, body) {
@@ -1027,20 +1016,20 @@ io.on('connection', (socket) => {
                 var was_in = false;
 
 
-                
+
                 for (let index = 0; index < project_doc.parts.length; index++) {
                     const part_element = project_doc.parts[index];
                     if (part_element.pid && part_element.pid == sanitizer.sanitize(data.part_id)) {
                         //PART EXISTING IN PROJECT so we add the amount
                         project_doc.parts[index].amount = parseInt(data.amount, 10);
                         //if amount == 0 delete part
-                        if (project_doc.parts[index].amount <= 0){
+                        if (project_doc.parts[index].amount <= 0) {
 
                             var new_part_array = [];
 
                             for (let indexpd = 0; indexpd < project_doc.parts.length; indexpd++) {
                                 const parts_element = project_doc.parts[indexpd];
-                                if(indexpd != index){
+                                if (indexpd != index) {
                                     new_part_array.push(parts_element);
                                 }
                             }
@@ -1079,7 +1068,7 @@ io.on('connection', (socket) => {
                         socket.emit('error_message_show', {
                             message: "PART AMOUNT CHANGED",
                             for_client_id: data.client_id,
-                            error:false
+                            error: false
                         });
 
                         return;
@@ -1152,6 +1141,76 @@ io.on('connection', (socket) => {
 
 
 });
+
+
+
+
+
+
+
+//INVENTUR CRONJOB ALL 2 HOURS
+cron.schedule('* */2 * * *', function () {
+    console.log('running inventur task');
+    //1st hole alle parts
+    var q = {
+        "selector": {
+            "_id": {
+                "$gt": null
+            },
+        }
+    };
+    pbm_db_parts.find(q, (err, body, header) => {
+        if (err) {
+            console.log('Error thrown: ', err.message);
+            return;
+        }
+        if (body.docs.length <= 0) {
+            console.log('Error thrown: no projects found');
+            return;
+        }
+
+
+        for (let index = 0; index < body.docs.length; index++) {
+            const element = body.docs[index];
+            //SKIP DELETED DOCS
+            if (element.deleted != undefined && element.deleted) {
+                continue;
+            }
+            //SKIP ACTIVE INVENTUR
+            if (element.inventur_state.inventur_active) {
+                continue;
+            }
+            //if next inventur timestamp is over set inventur active
+            var next_inventur = element.inventur_state.last_inventur + config.inventur_interval_in_seconds;
+            console.log(next_inventur);
+            if (next_inventur < Math.round(new Date().getTime() / 1000)) {
+                //SET INVENTUR ACTIVE
+                body.docs[index].inventur_state.inventur_active = true;
+                body.docs[index].inventur_state.last_inventur = Math.round(new Date().getTime() / 1000);
+                console.log("set inventur active for : " + body.docs[index].title + " " + body.docs[index].part_id);
+                //WRITE TO DB
+                pbm_db_parts.insert(body.docs[index], function (err, body) {
+                    if (err) {
+                        console.log(body);
+                        return;
+                    }
+                    return;
+                });
+
+            }
+
+
+
+        }
+
+
+    });
+
+});
+
+
+
+
 // when the client emits 'add user', this listens and executes
 //
 
