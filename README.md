@@ -22,7 +22,7 @@
 * part management
 * * gerber/3d/other file upload
 * * git integration for sourceocode
-
+* * project box managemant via barcodes
 
 
 
@@ -35,8 +35,9 @@
 * additional attributes
 * datasheet upload
 * image upload
+* usage in projects
 
-
+* * part location service
 
 ### * = WIP/PLANNED
 
@@ -47,6 +48,11 @@
 * FRONTEND: Bootstrap 4.0, EJS, SocketIO
 
 
+
+## HARDWARE
+* small webserver runnding NodeJs and CouchDB linke an RPI
+* * simple HID Barcodescanner
+* * labelprinter
 
 ## SCREENSHOTS (WIP  09.08.2018)
 
