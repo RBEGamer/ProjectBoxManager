@@ -1,13 +1,17 @@
 <html lang="en">
 
 <head>
+    <meta charset="utf-8">
 
     <link href="./bower_components/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
     <link href="./bower_components/awesomplete/awesomplete.css" rel="stylesheet">
 
 
-    <link href="./main.css" rel="stylesheet">
-    <meta charset="utf-8">
+    <link href="/main.css" rel="stylesheet">
+    <link href="/css/step_card.css" rel="stylesheet">
+
+
+    
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="kaps avatar test side">
     <meta name="author" content="Marcel Ochsendorf">
@@ -98,16 +102,29 @@
     <!-- Content Row -->
     <div class="row">
         <div class="col-md-5 mb-5">
-            <div class="card h-100">
-                <div class="card-body">
+            
                     <h2 class="card-title">STEP HISTORY</h2>
-                    <p class="card-text">
-                        <div name="sel_room_table" id="sel_room_table"></div>
-                    </p>
-                </div>
-                <div class="card-footer">
+                    <div id="step_history_holder">
 
-                </div>
+
+                        <div class="bs-calltoaction bs-calltoaction-info">
+                            <div class="row">
+                                <div class="col-md-9 cta-contents">
+                                    <h1 class="cta-title">Its a Call To Action</h1>
+                                    <div class="cta-desc">
+                                        <p>Describe the action here.</p>
+
+                                    </div>
+                                </div>
+                                <div class="col-md-3 cta-button">
+                                    <a href="#" class="btn btn-lg btn-block btn-info">Go for It!</a>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
             </div>
         </div>
 
@@ -221,17 +238,17 @@
         var partlist_data = null;
         var awesomplete_part_input = null;
 
- var client_id = 123;
+        var client_id = 123;
 
- function makeid() {
-  var text = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        function makeid() {
+            var text = "";
+            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-  for (var i = 0; i < 5; i++)
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
+            for (var i = 0; i < 5; i++)
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
 
-  return text;
-}
+            return text;
+        }
 
         function timeConverter(UNIX_timestamp, with_time = false) {
             try {
@@ -265,24 +282,11 @@
             povt_index++;
         }
 
-        function update_part_amount(_part_id, _amount) {
-            if (project_data == undefined && project_data != null) {
-                return;
-            }
-            var request = {
-                project_id: project_data.pid,
-                part_id: _part_id,
-                amount: _amount
-            }
-            //TODO
-            //send request to increase part amount
-        }
-
         function state_change(_st) {
             socket.emit('request_state_change', {
                 project_id: project_data_str_init.project_id,
                 state: _st,
-                client_id:client_id
+                client_id: client_id
             });
 
         }
@@ -294,7 +298,7 @@
                 project_id: project_data_str_init.project_id,
                 part_id: pid,
                 amount: am,
-                client_id:client_id
+                client_id: client_id
             });
         }
 
@@ -325,7 +329,7 @@
                 $("#pr_table_body_parts").append("<tr><th scope=\"row\"><a href=\"/parts?pid=" + element.pid + "\" />" +
                     String(c++) + "</a></th><td>" +
                     "<input type=\"number\" value=" + element.amount +
-                    " min=\"0\" style=\"width:50px;\" id=\"part_" + element.pid + "\" onChange=\"part_change_req(this, 'part_"+element.pid+"','"+element.pid+"')\"/>" +
+                    " min=\"0\" style=\"width:50px;\" id=\"part_" + element.pid + "\" onChange=\"part_change_req(this, 'part_" + element.pid + "','" + element.pid + "')\"/>" +
                     "x <span id=\"part_" + element.pid + "_int\"></span>" +
                     "</td><td>" +
                     "<span id=\"pr_client\" title=\"" + element.purpose + "\"><a href=\"/parts?pid=" + element.pid + "\" />" + element.title +
@@ -336,22 +340,21 @@
 
 
 
-function part_change_req(thelist, theinput, pid){
-    var val = $("#" + theinput).val();
-                        socket.emit('request_part_amount_change', {
-                            project_id: project_data_str_init.project_id,
-                            part_id: pid,
-                            amount: val,
-                            client_id:client_id
-                        });
-}
+        function part_change_req(thelist, theinput, pid) {
+            var val = $("#" + theinput).val();
+            socket.emit('request_part_amount_change', {
+                project_id: project_data_str_init.project_id,
+                part_id: pid,
+                amount: val,
+                client_id: client_id
+            });
+        }
 
 
         function parse_project_data_parts(_dt) {
             if (_dt == null) {
                 return;
             }
-
             add_row_to_part_table(_dt.parts);
         }
 
@@ -360,7 +363,6 @@ function part_change_req(thelist, theinput, pid){
             if (_dt == null) {
                 return;
             }
-
             if (_dt.tile != undefined && _dt.tile != null) {
                 if (_dt.revision != undefined && _dt.revision != null) {
                     $("#pr_title").html(_dt.tile.toString() + "<br>[Rev " + _dt.revision.toString() + "]");
@@ -368,12 +370,10 @@ function part_change_req(thelist, theinput, pid){
                     $("#pr_title").html(_dt.tile.toString());
                 }
             }
-
             if (_dt.created != undefined && _dt.created != null) {
                 add_row_to_project_overview_table("CREATED", timeConverter(_dt.created.toString()));
             }
             if (_dt.status != undefined && _dt.status != null) {
-
                 var col = "white";
                 if (_dt.status == "open") {
                     col = 'green';
@@ -382,13 +382,10 @@ function part_change_req(thelist, theinput, pid){
                 } else if (_dt.status == "pending") {
                     col = 'yellow';
                 }
-
-                add_row_to_project_overview_table("STATUS", "<span style='color: " + col + ";'>" + _dt.status.toString() +
-                    "</span>");
+                add_row_to_project_overview_table("STATUS", "<span style='color: " + col + ";'>" + _dt.status.toString() +"</span>");
             }
 
             if (_dt.last_update != undefined && _dt.last_update != null) {
-
                 add_row_to_project_overview_table("LAST_UPDATE", timeConverter(_dt.last_update.toString()));
             }
             if (_dt.additional_propteries != undefined && _dt.additional_propteries != null) {
@@ -398,9 +395,65 @@ function part_change_req(thelist, theinput, pid){
                 }
             }
         }
+
+
+        //TODO CHECK
+    function step_timestamp_compare(a, b) {
+        let comparison = 0;
+        if (a.timestamp < b.timestamp) {
+            comparison = 1;
+        } else if (b.timestamp < a.timestamp) {
+            comparison = -1;
+        }
+        return comparison;
+    }
+
+        function create_step_history_table(_dt){
+           // debugger;
+             
+            if(!_dt){return;}
+            if(!_dt.step_history){return;}
+            if (_dt.step_history.length <= 0) { return; }
+            $("#step_history_holder").html("");
+            var step_arr = [];
+            step_arr = _dt.step_history;
+            step_arr.sort(step_timestamp_compare);
+
+            for (let index = 0; index < step_arr.length; index++) {
+                const step = step_arr[index];
+                //CREATE INTERACTIVE STEP CARDS
+                var step_style = "default";
+                
+                if(step.type){
+                    if(String(step.type) == "info" || String(step.type) == "success" || String(step.type) == "primary" || String(step.type) == "default" || String(step.type) == "warning" || String(step.type) == "danger"){
+                        step_style = String(step.type);
+                    }
+                }
+                var btn_id = "stbtn"+String(step.id) + String(step.timestamp);
+                var step_html = "";
+                if(step.interactive){
+                    step_html = "<div class=\"bs-calltoaction bs-calltoaction-" + step_style + "\"><div class=\"row\"><div class=\"col-md-9 cta-contents\"><h3 class=\"cta-title\">" + step.title + "</h3><div class=\"cta-desc\"><p>" + step.desc + "</p></div></div><div class=\"col-md-3 cta-button\"><input type=\"button\" id=\"" + btn_id + "\" onclick=\"step_click(this,'" + btn_id + "','"+ step.url+"')\" class=\"btn btn-lg btn-block btn-" + step_style + "\" value=\"SHOW\" /></div></div></div>";
+                }else{
+                    step_html = "<div class=\"bs-calltoaction bs-calltoaction-" + step_style + "\"><div class=\"row\"><div class=\"col-md-12 cta-contents\"><h3 class=\"cta-title\">" + step.title + "</h3><div class=\"cta-desc\"><p>" + step.desc + "</p></div></div></div></div>";
+                }
+               
+                $("#step_history_holder").append(step_html);
+
+
+            }
+        }
+
+
+        function step_click(_this, _id, _url){
+
+            if(!_url){return;}
+            document.location.href = _url;
+        }
+
+
         $(document).ready(function () {
             client_id = makeid();
-            console.log("ready: "+ String(client_id));
+            console.log("ready: " + String(client_id));
             //FETCH PARTLIST
             $.get("/partlist.json", function (data) {
                 console.log("Data Loaded: " + JSON.stringify(data));
@@ -444,11 +497,12 @@ function part_change_req(thelist, theinput, pid){
             }
             parse_project_data_overview_table(project_data);
 
-
+       
+            create_step_history_table(project_data);
 
             socket = io();
             socket.emit('add user', {});
-           
+
             socket.on('response_new_project_data', function (data) {
 
                 clear_tables();
@@ -469,11 +523,13 @@ function part_change_req(thelist, theinput, pid){
                     parse_project_data_parts(project_data.project_data_str);
                 }
 
+                create_step_history_table(project_data);
+
             });
 
 
 
-             socket.on('error_message_show', function (data) {
+            socket.on('error_message_show', function (data) {
 
                 alert(data.message);
 
@@ -483,7 +539,7 @@ function part_change_req(thelist, theinput, pid){
             setInterval(function () {
                 socket.emit('request_new_project_data', {
                     project_id: project_data_str_init.project_id,
-                    client_id:client_id
+                    client_id: client_id
                 });
             }, 3000);
 

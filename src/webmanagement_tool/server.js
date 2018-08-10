@@ -619,7 +619,10 @@ var project_db_entry_template_step_history = {
     id: "-1",
     title: "Project was created",
     desc: "---",
-    timestamp: 1531152389
+    timestamp: 1531152389,
+    type:"default",
+    interactive: false,
+    url: "/"
 };
 
 
@@ -665,6 +668,7 @@ app.post('/create_project', function (req, res) {
     var step_tpl = project_db_entry_template_step_history;
     step_tpl.timestamp = ptpl.last_update;
     step_tpl.id = generate_step_id(0);
+    step_tpl.type = "success";
     ptpl.step_history.push(step_tpl);
     //Add a custom prop to it if you want
     var aptmp = project_db_entry_template_add_properties;
@@ -1149,7 +1153,7 @@ io.on('connection', (socket) => {
 
 
 //INVENTUR CRONJOB ALL 2 HOURS
-cron.schedule('* * */2 * * *', function () {
+cron.schedule('* 0-23 * * *', function () {
     console.log('running inventur task');
     //1st hole alle parts
     var q = {
