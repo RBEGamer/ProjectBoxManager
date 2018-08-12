@@ -370,12 +370,16 @@
             var stock_message_html = "";
             var card_html = "";
             var ul_list_html = "";
-
+            var was_one_part_inventory_check =  false;
             for (let index = 0; index < _dt.length; index++) {
                 const element = _dt[index];
                 //SKIP HIDDEN PARTS
                 if(element.deleted != undefined && element.deleted){
                     continue;
+                }
+
+                if(element.inventory_state && element.inventur_state.inventur_active){
+                    was_one_part_inventory_check = true;
                 }
                 //GET TEMPLATE
                 card_html = card_html_template_str;
@@ -433,9 +437,14 @@
 
 
 
+
+
             }
 
-
+            //SHOW MAKE INVENTAR CHECK MESSAGE
+            if(was_one_part_inventory_check){
+                  $("#part_stock_message").append("<div class='alert_orange'> <strong>STOCK CHECK</strong> PLEASE MAKE AN STOCK CHECK FOR ALLE PARTS !!!!</div><br />");
+            }
 
 
 

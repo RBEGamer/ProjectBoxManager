@@ -9,6 +9,12 @@ anzal veränderbar und mit button bestätigbar
 ->add part nur einen supplier
 ->addiitonal attr per keyword box
 
+-> add step bei state change
+-> add step manually
+-> add step at git release
+
+
+
 
 
 
@@ -19,12 +25,5 @@ anzal veränderbar und mit button bestätigbar
 
 -> anzeige in wie vielen projecten benutzt
 -> anzeigen wie oft in gebrauch (project parts)
-
-
--> step anzeige im project
-
-
--> add step bei state change
-
 
 -> filter (in url) für project states

@@ -77,6 +77,71 @@ nano.db.create(config.couchdb_db_name_parts, function () {
 
 
 
+//INVENTUR GET
+app.get('/inventur', function (req, res) {
+    var q = {
+        "selector": {
+            "_id": {
+                "$gt": null
+            },
+        }
+    };
+
+    pbm_db_parts.find(q, (err, body, header) => {
+        if (err) {
+            console.log('Error thrown: ', err.message);
+            res.redirect("/error?r=db_query_error_part_inventur_find");
+            return;
+        }
+        if (body.docs.length <= 0) {
+            console.log('Error thrown: no projects found');
+            res.redirect("/error?r=no_parts_found_please_add_one_inventur");
+        }
+        var project_doc = body.docs[0];
+        var pro = [];
+
+        for (let index = 0; index < body.docs.length; index++) {
+            const element = body.docs[index];
+
+
+            //SKIP DELETED DOCS
+            if (element.inventur_state && element.inventur_state.inventur_active) {
+                pro.push(element);
+            }else{
+                continue;
+            }
+            
+        }
+
+        if (body.docs != undefined && body.docs != null) {
+            res.render('inventur.ejs', {
+                inventur_list: JSON.stringify({ parts: pro }),//.projects -> array
+            });
+        } else {
+            res.redirect("/error?r=result_contains_no_parts_docs");
+        }
+    });
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -150,6 +215,7 @@ var new_part_db_entry_template = {
     inventur_state: {
         last_inventur: "",
         inventur_finished: "",
+        inventur_started: "",
         inventur_active: false
     },
 };
@@ -283,22 +349,12 @@ app.post('/create_part', function (req, res) {
             console.log(err);
         });
     }
-
-
-
     //INVENTUR SYSTEM SETUP
-
-    //inventur_state: {
-    //    last_inventur: "",
-    //        inventur_finished: "",
-    //            inventur_active: true
-    //},
-
     tmp.inventur_state.last_inventur = Math.round(new Date().getTime() / 1000);
     tmp.inventur_state.inventur_active = false;
     tmp.inventur_state.inventur_finished = Math.round(new Date().getTime() / 1000);
-
-
+    tmp.inventur_state.inventur_started = Math.round(new Date().getTime() / 1000);
+    //UPDATE DB
     pbm_db_parts.insert(tmp, function (err, body) {
         if (err) {
             console.log(body);
@@ -751,38 +807,6 @@ app.post('/project_delete', function (req, res) {
 io.on('connection', (socket) => {
     var addedUser = false;
 
-    /**
-     * 
-     * 
-     * contriols für project state mit btn group open close shipping, wait parts wait step complete
-     * socket.emit('request_part_add_part', {
-                project_id: project_data_str_init.project_id,
-                part_id: pid,
-                amount: am
-            });
-
-
-
-
-             socket.emit('request_state_change', {
-                            project_id: project_data_str_init.project_id,
-                            state:_st
-                        });
-
-
-
-                        //project_update
-                        
-     */
-
-
-
-
-    /*
-
-
-    - > wenn neues project geadded sende an project_update alle projecte s. get /
-    */
 
 
 
@@ -959,16 +983,13 @@ io.on('connection', (socket) => {
     });
 
 
-    socket.on('request_part_amount_change', (data) => {
-        //project_id
-        //
 
-        /*
-{ project_id: '1337',
-  part_id: '8377886795',
-  amount: '136',
-  client_id: '3pmit' }
-        */
+
+
+
+
+
+    socket.on('request_part_amount_change', (data) => {
         console.log("ch");
         console.log(data);
 
@@ -1137,6 +1158,158 @@ io.on('connection', (socket) => {
         });
     });
 
+
+
+
+
+
+
+
+
+
+    socket.on('inventur_amount_change', (data) => {
+        console.log("ch");
+        console.log(data);
+
+        if ( !data.pid || !data.stock) {
+            console.log("err data not all attr are set");
+            socket.emit('error_message_show', {
+                message: "invalid part_add request",
+                for_client_id: data.client_id,
+                error: true
+            });
+            return;
+        }
+
+
+      
+      //SEACH PART IN DB
+      //CHECK IF FINAL -> UPDATE INVENTUR DATA
+      //
+        var q = {
+            "selector": {
+                "_id": {
+                    "$gt": null
+                },
+                "part_id": sanitizer.sanitize(data.pid)
+            }
+        };
+        pbm_db_parts.find(q, (err, body, header) => {
+            if (err) {
+                console.log('Error thrown: ', err.message);
+                socket.emit('error_message_show', {
+                    message: err.message,
+                    for_client_id: data.client_id,
+                    error: true
+                });
+                return;
+            }
+           
+            if (body.docs != undefined && body.docs != null) {
+                var part_doc = body.docs[0];
+                //SET INVENTUR FINISHED
+                if (data.final){
+                    part_doc.inventur_state.inventur_active = false;
+                    part_doc.inventur_state.last_inventur = Math.round(new Date().getTime() / 1000);
+                    part_doc.inventur_state.inventur_finished = Math.round(new Date().getTime() / 1000);
+                }
+                //UPDATE STOCK
+                part_doc.stock= data.stock;
+
+                //SAVE TO DB
+                pbm_db_parts.insert(part_doc, function (err, body) {
+                    if (err) {
+                        console.log(body);
+                        socket.emit('error_message_show', {
+                            message: err.message,
+                            for_client_id: data.client_id,
+                            error: true
+                        });
+                        return;
+                    }
+                    
+
+                    //RESEND COMPLETE INVENTUR DATA
+                    var q1 = {
+                        "selector": {
+                            "_id": {
+                                "$gt": null
+                            },
+                        }
+                    };
+
+                    pbm_db_parts.find(q1, (err, body, header) => {
+                        if (err) {
+                            console.log('Error thrown: ', err.message);
+                            socket.emit('error_message_show', {
+                                message: err.message,
+                                for_client_id: data.client_id,
+                                error: true
+                            });
+                            return;
+                        }
+                        if (body.docs.length <= 0) {
+                            console.log('Error thrown: no projects found');
+                            socket.emit('error_message_show', {
+                                message: "part update failed please refresh",
+                                for_client_id: data.client_id,
+                                error: true
+                            });
+                        }
+                       
+                        var pro = [];
+//TODO _-------------------------------
+                        for (let index = 0; index < body.docs.length; index++) {
+                            const element = body.docs[index];
+
+
+                            //SKIP DELETED DOCS
+                            if (element.inventur_state && element.inventur_state.inventur_active) {
+                                pro.push(element);
+                            } else {
+                                continue;
+                            }
+
+                        }
+
+                        if (body.docs != undefined && body.docs != null) {
+                            socket.emit('inventur_update', {
+                                parts: pro,
+                                for_client_id: data.client_id,
+                            });
+                        } else {
+                            socket.emit('error_message_show', {
+                                message: "result contains no parts",
+                                for_client_id: data.client_id,
+                                error: true
+                            });
+                        }
+                    });
+                    
+
+
+
+
+
+
+                    return;
+                });
+
+                
+
+
+
+            } else {
+                //    throw;
+                socket.emit('error_message_show', {
+                    message: "invalid part_id request",
+                    for_client_id: data.client_id,
+                    error: true
+                });
+            }
+        });
+
+    });
 
 
 
