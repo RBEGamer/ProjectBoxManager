@@ -1,29 +1,39 @@
 # TODO
 
--> inventur audlisting 
-page wo alle mit dem inventur flag gesetzten baueteile in tabllee mit name lagerort bild und anzahl angezeigt werden
-anzal veränderbar und mit button bestätigbar
--> wenn anzahl bestätigt inventur auf false setzten und inventur finished
--> wenn anzahl 0 dann deleted = 1
-
-->add part nur einen supplier
-->addiitonal attr per keyword box
-
--> add step bei state change
--> add step manually
--> add step at git release
 
 
 
 
 
 
+########## PROJECT VIEW
+-> show NEXT STEP if current_next_step != null
+-> add departments to step show in next step
+-> add filter project for departments
 
+-> add file upload /delete Porject files
+
+
+
+
+-> add working time counter
+-> simlpe add with desc whats made
+
+
+# GIT INTEGRATION
+-> add git url
+-> add step at git release /
+
+
+#PARRS
+-> anzeige in wie vielen projecten benutzt
+-> anzeigen wie oft in gebrauch (project parts)
+-> filter (in url) für project states
 -> partansicht erstellen
 -> mit stock änderbar
 -> löschen button
 
--> anzeige in wie vielen projecten benutzt
--> anzeigen wie oft in gebrauch (project parts)
 
--> filter (in url) für project states
+#BUGIFX
+->add part nur einen supplier
+->addiitonal attr per keyword box

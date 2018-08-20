@@ -668,7 +668,8 @@ var project_db_entry_template = {
     step_history: [
 
     ],
-    deleted: false
+    deleted: false,
+    current_next_step: null
 };
 //and a template for a step
 var project_db_entry_template_step_history = {
@@ -726,6 +727,8 @@ app.post('/create_project', function (req, res) {
     step_tpl.id = generate_step_id(0);
     step_tpl.type = "success";
     ptpl.step_history.push(step_tpl);
+
+    current_next_step = step_tpl;
     //Add a custom prop to it if you want
     var aptmp = project_db_entry_template_add_properties;
     aptmp.key = "KATEGORY";
@@ -820,13 +823,10 @@ io.on('connection', (socket) => {
             return;
         }
 
+        if (!data.department){
+            data.department = "---";
+        }
 
-        /*
- project_id: project_data_str_init.project_id,
-                state: _st,
-                client_id: client_id,
-                reasson:null
-        */
         var q = {
             "selector": {
                 "_id": {
@@ -862,10 +862,13 @@ io.on('connection', (socket) => {
                 var step_tpl = project_db_entry_template_step_history;
                 step_tpl.timestamp = project_doc.last_update;
                 step_tpl.id = generate_step_id(step_id);
-                step_tpl.type = "info";
+                step_tpl.type = "default";
+                step_tpl.interactive = false;
                 step_tpl.desc = String(sanitizer.sanitize(data.reasson));
                 step_tpl.title = "" + String(sanitizer.sanitize(data.state)).toLocaleUpperCase();
+                step_tpl.department = String(sanitizer.sanitize(data.department)).toLocaleUpperCase();
                 project_doc.step_history.push(step_tpl);
+                project_doc.current_next_step = step_tpl; //SET THIS SET AS NEW STEP
 
                 //SAFE IN DB AND SEND OK BACK
                 pbm_db_projects.insert(project_doc, function (err, body) {

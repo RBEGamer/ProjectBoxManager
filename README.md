@@ -68,6 +68,9 @@
 ## PARTS LIST (show parts, sort them, stock warning)
 ![GitHub Logo](/documentation/part_list.png)
 
+## INVENTUR SYSTEM TO MANAGE AND CHECK YOUR STOCK
+![GitHub Logo](/documentation/part_inventur.png)
+
 
 ## SETUP
 later :)
