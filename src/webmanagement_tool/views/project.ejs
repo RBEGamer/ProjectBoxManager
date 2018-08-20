@@ -94,6 +94,11 @@
                 <button type="button" class="btn btn-success" onclick="state_change('ready_shipping')">READY_SHIPPING</button>
                 <button type="button" class="btn btn-danger" onclick="state_change('closed')">CLOSED</button>
             </div>
+
+            <p>
+
+            <input type="text" id="state_change_text" name="state_change_text" placeholder="WHY STATE CHANGED"/>
+            </p>
         </div>
     </div>
 
@@ -273,6 +278,7 @@
         function clear_tables() {
             $("#pr_table_spec_body").html("");
             $("#pr_table_body_parts").html("");
+            $("#step_history_holder").html("");
             povt_index = 0;
         }
         var povt_index = 0; //FIXED OFFSET FOR REQUIRED ITEMS
@@ -283,10 +289,16 @@
         }
 
         function state_change(_st) {
+var text = $("#state_change_text").val();
+
+if(!text || text == ""){
+    text = "";
+}
             socket.emit('request_state_change', {
                 project_id: project_data_str_init.project_id,
                 state: _st,
-                client_id: client_id
+                client_id: client_id,
+                reasson: text
             });
 
         }
@@ -374,6 +386,7 @@
                 add_row_to_project_overview_table("CREATED", timeConverter(_dt.created.toString()));
             }
             if (_dt.status != undefined && _dt.status != null) {
+                _dt.status = String(_dt.status).toLocaleLowerCase();
                 var col = "white";
                 if (_dt.status == "open") {
                     col = 'green';
@@ -409,7 +422,7 @@
     }
 
         function create_step_history_table(_dt){
-           // debugger;
+          
              
             if(!_dt){return;}
             if(!_dt.step_history){return;}
@@ -445,7 +458,6 @@
 
 
         function step_click(_this, _id, _url){
-
             if(!_url){return;}
             document.location.href = _url;
         }
@@ -523,7 +535,7 @@
                     parse_project_data_parts(project_data.project_data_str);
                 }
 
-                create_step_history_table(project_data);
+                create_step_history_table(project_data.project_data_str);
 
             });
 
@@ -537,10 +549,10 @@
 
 
             setInterval(function () {
-                socket.emit('request_new_project_data', {
-                    project_id: project_data_str_init.project_id,
-                    client_id: client_id
-                });
+             //   socket.emit('request_new_project_data', {
+               //     project_id: project_data_str_init.project_id,
+                 //   client_id: client_id
+                //});
             }, 3000);
 
 

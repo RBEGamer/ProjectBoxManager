@@ -107,10 +107,10 @@ app.get('/inventur', function (req, res) {
             //SKIP DELETED DOCS
             if (element.inventur_state && element.inventur_state.inventur_active) {
                 pro.push(element);
-            }else{
+            } else {
                 continue;
             }
-            
+
         }
 
         if (body.docs != undefined && body.docs != null) {
@@ -676,7 +676,7 @@ var project_db_entry_template_step_history = {
     title: "Project was created",
     desc: "---",
     timestamp: 1531152389,
-    type:"default",
+    type: "default",
     interactive: false,
     url: "/"
 };
@@ -809,7 +809,101 @@ io.on('connection', (socket) => {
 
 
 
+    socket.on('request_state_change', (data) => {
 
+        if (!data.state || !data.client_id || !data.project_id ) {
+            console.log("err data not all attr are set");
+            socket.emit('error_message_show', {
+                message: "invalid part_add request",
+                for_client_id: data.client_id
+            });
+            return;
+        }
+
+
+        /*
+ project_id: project_data_str_init.project_id,
+                state: _st,
+                client_id: client_id,
+                reasson:null
+        */
+        var q = {
+            "selector": {
+                "_id": {
+                    "$gt": null
+                },
+                "project_id": sanitizer.sanitize(data.project_id)
+            }
+        };
+        pbm_db_projects.find(q, (err, body, header) => {
+            if (err) {
+                console.log('Error thrown: ', err.message);
+                socket.emit('error_message_show', {
+                    message: err.message,
+                    for_client_id: data.client_id
+                });
+                return;
+            }
+            if (body.docs != undefined && body.docs != null) {
+                var project_doc = body.docs[0];
+                console.log(project_doc);
+                if (!project_doc.parts) {
+                    console.log("no part array present - adding one please check project template json");
+                    project_doc.parts = [];
+                }
+                var step_id = 0;
+                if(project_doc.step_history){
+                    step_id = project_doc.step_history.length;
+                }
+                //NOW SET ALL NEW VALUES
+                project_doc.last_update = Math.floor(Date.now() / 1000);
+                project_doc.status = sanitizer.sanitize(data.state);
+
+                var step_tpl = project_db_entry_template_step_history;
+                step_tpl.timestamp = project_doc.last_update;
+                step_tpl.id = generate_step_id(step_id);
+                step_tpl.type = "info";
+                step_tpl.desc = String(sanitizer.sanitize(data.reasson));
+                step_tpl.title = "" + String(sanitizer.sanitize(data.state)).toLocaleUpperCase();
+                project_doc.step_history.push(step_tpl);
+
+                //SAFE IN DB AND SEND OK BACK
+                pbm_db_projects.insert(project_doc, function (err, body) {
+                    if (err) {
+                        console.log(body);
+                        socket.emit('error_message_show', {
+                            message: "Project db save failed",
+                            for_client_id: data.client_id,
+                            error: true
+                        });
+                        return;
+                    }
+                    //and send a refresh of the project
+                    //TODO BROADCAST and client check projject id for refresh
+                    socket.emit('response_new_project_data', {
+                        project_data_str: project_doc
+                    });
+                    return;
+                });
+
+
+
+            } else {
+                //    throw;
+                socket.emit('error_message_show', {
+                    message: "no project with this id found, was the project deleted",
+                    for_client_id: data.client_id,
+                    error: true
+                });
+            }
+        });
+
+        console.log("state_ch");
+        console.log(data);
+        //change state
+        //add new step to step histroy with reason
+
+    });
 
     socket.on('request_part_add_part', (data) => {
         //project_id
@@ -1171,7 +1265,7 @@ io.on('connection', (socket) => {
         console.log("ch");
         console.log(data);
 
-        if ( !data.pid || !data.stock) {
+        if (!data.pid || !data.stock) {
             console.log("err data not all attr are set");
             socket.emit('error_message_show', {
                 message: "invalid part_add request",
@@ -1182,10 +1276,10 @@ io.on('connection', (socket) => {
         }
 
 
-      
-      //SEACH PART IN DB
-      //CHECK IF FINAL -> UPDATE INVENTUR DATA
-      //
+
+        //SEACH PART IN DB
+        //CHECK IF FINAL -> UPDATE INVENTUR DATA
+        //
         var q = {
             "selector": {
                 "_id": {
@@ -1204,17 +1298,17 @@ io.on('connection', (socket) => {
                 });
                 return;
             }
-           
+
             if (body.docs != undefined && body.docs != null) {
                 var part_doc = body.docs[0];
                 //SET INVENTUR FINISHED
-                if (data.final){
+                if (data.final) {
                     part_doc.inventur_state.inventur_active = false;
                     part_doc.inventur_state.last_inventur = Math.round(new Date().getTime() / 1000);
                     part_doc.inventur_state.inventur_finished = Math.round(new Date().getTime() / 1000);
                 }
                 //UPDATE STOCK
-                part_doc.stock= data.stock;
+                part_doc.stock = data.stock;
 
                 //SAVE TO DB
                 pbm_db_parts.insert(part_doc, function (err, body) {
@@ -1227,7 +1321,7 @@ io.on('connection', (socket) => {
                         });
                         return;
                     }
-                    
+
 
                     //RESEND COMPLETE INVENTUR DATA
                     var q1 = {
@@ -1256,9 +1350,9 @@ io.on('connection', (socket) => {
                                 error: true
                             });
                         }
-                       
+
                         var pro = [];
-//TODO _-------------------------------
+                        //TODO _-------------------------------
                         for (let index = 0; index < body.docs.length; index++) {
                             const element = body.docs[index];
 
@@ -1285,7 +1379,7 @@ io.on('connection', (socket) => {
                             });
                         }
                     });
-                    
+
 
 
 
@@ -1295,7 +1389,7 @@ io.on('connection', (socket) => {
                     return;
                 });
 
-                
+
 
 
 
