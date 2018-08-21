@@ -257,7 +257,7 @@ function generate_part_id() {
 
 //TO CREATE A NEW PART IN THE DATABASE WITH FILEUPLOAD FOR IMAGES
 app.post('/create_part', function (req, res) {
-    console.log(req.body);
+    //console.log(req.body);
     if (!req.body.new_part_title || !req.body.new_part_description || !req.body.new_part_tags || !req.body.new_part_stock) {
         res.redirect("/error?r=please_fill_in_all_required_fileds");
         return;
@@ -367,7 +367,7 @@ app.post('/create_part', function (req, res) {
             res.finished = true;
             return;
         }
-        console.log(body);
+      //  console.log(body);
         res.redirect("/part?id=" + String(tmp.part_id));
         res.finished = true;
     });
@@ -411,12 +411,12 @@ app.post('/part_delete', function (req, res) {
             //insert it back again to save a revsion
             pbm_db_parts.insert(project_doc, function (err, body) {
                 if (err) {
-                    console.log(body);
+               //     console.log(body);
                     res.redirect("/error?r=db_insert_failed_please_check_your_db_part_delete");
                     res.finished = true;
                     return;
                 }
-                console.log(body);
+                //console.log(body);
                 res.redirect("/parts");
                 res.finished = true;
             });
@@ -448,7 +448,7 @@ app.get('/', function (req, res) {
 
     if (req.query.dep) {
         department = sanitizer.sanitize(req.query.dep);
-        console.log(department);
+        //console.log(department);
 
     }
 
@@ -755,12 +755,12 @@ app.post('/create_project', function (req, res) {
     //write to db and redirect to project
     pbm_db_projects.insert(ptpl, function (err, body) {
         if (err) {
-            console.log(body);
+          //  console.log(body);
             res.redirect("/error?r=db insert failed please check your db");
             res.finished = true;
             return;
         }
-        console.log(body)
+        //console.log(body)
         res.redirect("/project?id=" + pid + "");
         res.finished = true;
     });
@@ -805,12 +805,12 @@ app.post('/project_delete', function (req, res) {
             //insert it back again to save a revsion
             pbm_db_projects.insert(project_doc, function (err, body) {
                 if (err) {
-                    console.log(body);
+                  //  console.log(body);
                     res.redirect("/error?r=db_insert_failed_please_check_your_db_project_delete");
                     res.finished = true;
                     return;
                 }
-                console.log(body)
+               // console.log(body)
                 res.redirect("/");
                 res.finished = true;
             });
@@ -864,7 +864,7 @@ io.on('connection', (socket) => {
             }
             if (body.docs != undefined && body.docs != null) {
                 var project_doc = body.docs[0];
-                console.log(project_doc);
+           //     console.log(project_doc);
                 if (!project_doc.parts) {
                     console.log("no part array present - adding one please check project template json");
                     project_doc.parts = [];
@@ -891,7 +891,7 @@ io.on('connection', (socket) => {
                 //SAFE IN DB AND SEND OK BACK
                 pbm_db_projects.insert(project_doc, function (err, body) {
                     if (err) {
-                        console.log(body);
+                //        console.log(body);
                         socket.emit('error_message_show', {
                             message: "Project db save failed",
                             for_client_id: data.client_id,
@@ -976,7 +976,7 @@ io.on('connection', (socket) => {
             if (body.docs != undefined && body.docs != null) {
                 var project_doc = body.docs[0];
 
-                console.log(project_doc);
+               // console.log(project_doc);
 
 
                 if (!project_doc.parts) {
@@ -1032,7 +1032,7 @@ io.on('connection', (socket) => {
                             //SAFE IN DB AND SEND OK BACK
                             pbm_db_projects.insert(project_doc, function (err, body) {
                                 if (err) {
-                                    console.log(body);
+                                 //   console.log(body);
                                     socket.emit('error_message_show', {
                                         message: "Project db save failed",
                                         for_client_id: data.client_id,
@@ -1072,7 +1072,7 @@ io.on('connection', (socket) => {
                 //SAFE IN DB AND SEND OK BACK
                 pbm_db_projects.insert(project_doc, function (err, body) {
                     if (err) {
-                        console.log(body);
+                  //      console.log(body);
                         socket.emit('error_message_show', {
                             message: "Project db save failed",
                             for_client_id: data.client_id,
@@ -1115,7 +1115,7 @@ io.on('connection', (socket) => {
 
     socket.on('request_part_amount_change', (data) => {
         console.log("ch");
-        console.log(data);
+     //   console.log(data);
 
         if (!data.project_id || !data.part_id || !data.amount) {
             console.log("err data not all attr are set");
@@ -1200,7 +1200,7 @@ io.on('connection', (socket) => {
                     //SAFE IN DB AND SEND OK BACK
                     pbm_db_projects.insert(project_doc, function (err, body) {
                         if (err) {
-                            console.log(body);
+                         //   console.log(body);
                             socket.emit('error_message_show', {
                                 message: "Project db save failed:" + err.message,
                                 for_client_id: data.client_id,
@@ -1292,8 +1292,8 @@ io.on('connection', (socket) => {
 
 
     socket.on('inventur_amount_change', (data) => {
-        console.log("ch");
-        console.log(data);
+       // console.log("ch");
+     //   console.log(data);
 
         if (!data.pid || !data.stock) {
             console.log("err data not all attr are set");
@@ -1343,7 +1343,7 @@ io.on('connection', (socket) => {
                 //SAVE TO DB
                 pbm_db_parts.insert(part_doc, function (err, body) {
                     if (err) {
-                        console.log(body);
+                     //   console.log(body);
                         socket.emit('error_message_show', {
                             message: err.message,
                             for_client_id: data.client_id,
@@ -1526,7 +1526,7 @@ cron.schedule('* 0-23 * * *', function () {
             }
             //if next inventur timestamp is over set inventur active
             var next_inventur = element.inventur_state.last_inventur + config.inventur_interval_in_seconds;
-            console.log(next_inventur);
+         //   console.log(next_inventur);
             if (next_inventur < Math.round(new Date().getTime() / 1000)) {
                 //SET INVENTUR ACTIVE
                 body.docs[index].inventur_state.inventur_active = true;
@@ -1535,7 +1535,7 @@ cron.schedule('* 0-23 * * *', function () {
                 //WRITE TO DB
                 pbm_db_parts.insert(body.docs[index], function (err, body) {
                     if (err) {
-                        console.log(body);
+                     //   console.log(body);
                         return;
                     }
                     return;
