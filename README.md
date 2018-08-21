@@ -14,7 +14,7 @@
 * easy part storage manangement (barcode scanner planned)
 * automatic stock alerts
 * automatic inventur system
-
+* RSS Feed integration for project updates
 
 ## PROJECT
 * states

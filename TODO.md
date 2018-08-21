@@ -14,7 +14,7 @@
 -> add people in departments
 -> at next step add peopble selction if dep is selected
 
--> add rss notification
+
 
 -> add working time counter for peoble on project
 -> simlpe add with desc whats made
