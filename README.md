@@ -64,6 +64,12 @@
 ![GitHub Logo](/documentation/project_states.png)
 
 
+## NEXT STEP ACTIVITY VIEW
+![GitHub Logo](/documentation/next_step_view.png)
+
+
+
+
 
 ## PARTS LIST (show parts, sort them, stock warning)
 ![GitHub Logo](/documentation/part_list.png)

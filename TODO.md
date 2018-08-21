@@ -7,8 +7,6 @@
 
 
 ########## PROJECT VIEW
--> show NEXT STEP if current_next_step != null
--> add departments to step show in next step
 -> add filter project for departments
 
 -> add file upload /delete Porject files
