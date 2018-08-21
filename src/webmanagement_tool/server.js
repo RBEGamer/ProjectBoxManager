@@ -448,7 +448,7 @@ app.get('/', function (req, res) {
 
     if (req.query.dep) {
         department = sanitizer.sanitize(req.query.dep);
-        //console.log(department);
+        console.log(department);
 
     }
 
@@ -478,8 +478,7 @@ app.get('/', function (req, res) {
 
         if (body.docs != undefined && body.docs != null) {
             res.render('index.ejs', {
-                projects: JSON.stringify({ projects: pro }),//.projects -> array
-                dep: department
+                projects: JSON.stringify({ projects: pro, dep: department }),//.projects -> array
             });
         } else {
             res.redirect("/error?r=result_contains_no_project_docs");

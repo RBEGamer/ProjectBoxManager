@@ -193,19 +193,21 @@ function onDepChange(_this, _name){
                         } catch (err) {}
                     }
 
-                    parse_project_list_and_gen_tables(project_list.projects);
+                   debugger;
 
-                    if(project_list.dep){
-                        $("#dep_change").val(String(project_list.dep));
-                        dep_filter = String(project_list.dep);
-                    }else if(project_list.dep && String(project_list.dep)== ""){
+                    if(project_list.dep && project_list.dep == "ALL"){
+                       // $("#dep_change").val("ALL");
                         dep_filter = "";
-                    } else if (project_list.dep && String(project_list.dep) == "ALL") {
+                    }else if(project_list.dep){
+                         $("#dep_change").val(String(project_list.dep));
+                        dep_filter = String(project_list.dep);
+                    }else {
+                         $("#dep_change").val(String("ALL"));
                         dep_filter = "";
                     }
                     
 
-
+                    parse_project_list_and_gen_tables(project_list.projects);
                    
 
 
