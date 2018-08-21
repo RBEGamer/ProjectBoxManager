@@ -31,9 +31,26 @@
     </header>
 
 
+<div class="row my-12">
+    <div class="col-lg-12" style="height:30px; width:100%; clear:both;"></div>
+</div>
+
+    <h5 class="section-title h3">PROJECTS  
+    
+    <a href="/parts"> <button type="button" class="btn btn-info">PARTS</button></a>
+    <a href="/inventur"> <button type="button" class="btn btn-warning">INVENTUR</button></a>
+
+    <select id="dep_change" name="dep_change" onchange="onDepChange(this,'dep_change')">
+        <option value="DEVELOPER">DEV</option>
+        <option value="RESEARCH">RESEARCH</option>
+        <option value="TESTING">TESTING</option>
+        <option value="SHIPPING">SHIPPING</option>
+        <option value="">ALL</option>
+        <option value="UNKNOWN">UNKNOWN</option>
+    </select>
 
 
-    <h5 class="section-title h1">PROJECTS   <a href="/parts"> <button type="button" class="btn btn-info">PARTS</button><a href="/inventur"> <button type="button" class="btn btn-warning">INVENTUR</button></a></h5>
+    </h5>
     <div class="row" id="project_cards_holder">
     </div>
 
@@ -60,7 +77,7 @@
 
 
         var hide_closed_projects = true;
-
+        var dep_filter = "";
         function timeConverter(UNIX_timestamp, with_time = false) {
             try {
                 var a = new Date(UNIX_timestamp * 1000);
@@ -82,12 +99,17 @@
         }
 
 
-
+function onDepChange(_this, _name){
+    var val = $("#" + _name).val();
+    if(!val){dep_filter = ""; parse_project_list_and_gen_tables(project_list.projects);return;} 
+    dep_filter = val;
+    parse_project_list_and_gen_tables(project_list.projects);
+}
 
 
         function parse_project_list_and_gen_tables(_dt) {
             //TODO 
-            $("project_cards_holder").html("");
+            $("#project_cards_holder").html("");
             if (card_html_template_str == "") {
                 console.log("card_tmp_not_loaded");
                 return;
@@ -97,6 +119,11 @@
 
                 if (hide_closed_projects && element.status != undefined && (element.status == "closed" || element.status ==
                         -1)) {
+                    continue;
+                }
+
+
+                if(dep_filter != "" && element.current_next_step && element.current_next_step.department != dep_filter){
                     continue;
                 }
                 var card_html = card_html_template_str;
@@ -146,12 +173,6 @@
         $(document).ready(function () {
 
 
-
-
-
-
-        //  <button type="submit" class="btn btn-primary">Submit</button>
-
             console.log("ready!");
 
             $.get("/card_new_project.html", function (data_tmpl) {
@@ -174,6 +195,15 @@
 
                     parse_project_list_and_gen_tables(project_list.projects);
 
+                    if(project_list.dep){
+                        $("#dep_change").val(String(project_list.dep));
+                        dep_filter = String(project_list.dep);
+                    }else if(project_list.dep && String(project_list.dep)== ""){
+                        dep_filter = "";
+                    } else if (project_list.dep && String(project_list.dep) == "ALL") {
+                        dep_filter = "";
+                    }
+                    
 
 
                    
@@ -199,6 +229,7 @@
 
                     }
                 }
+                project_list = projects_list;
                 parse_project_list_and_gen_tables(projects_list.projects);
             });
 

@@ -435,6 +435,18 @@ app.get('/', function (req, res) {
             },
         }
     };
+
+
+
+    var department = "";
+
+  
+    if(req.query.dep){
+        department = sanitizer.sanitize(req.query.dep);
+        console.log(department);
+
+    }
+
     pbm_db_projects.find(q, (err, body, header) => {
         if (err) {
             console.log('Error thrown: ', err.message);
@@ -461,7 +473,8 @@ app.get('/', function (req, res) {
 
         if (body.docs != undefined && body.docs != null) {
             res.render('index.ejs', {
-                projects: JSON.stringify({ projects: pro })//.projects -> array
+                projects: JSON.stringify({ projects: pro }),//.projects -> array
+                dep: department
             });
         } else {
             res.redirect("/error?r=result_contains_no_project_docs");
