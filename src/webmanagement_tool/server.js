@@ -21,6 +21,11 @@ var sanitizer = require('sanitizer');
 var port = process.env.PORT || config.webserver_default_port || 3000;
 var fileUpload = require('express-fileupload');
 var cron = require('node-cron');
+var RSS = require('rss');
+
+
+var hostname = process.env.HOSTNAME || config.hostname || "http://127.0.0.1:3000/";
+
 //----------------------------- EXPRESS APP SETUP ------------------------------------------//
 app.set('trust proxy', 1);
 app.use(function (req, res, next) {
@@ -899,6 +904,9 @@ io.on('connection', (socket) => {
                     socket.emit('response_new_project_data', {
                         project_data_str: project_doc
                     });
+
+                step_tpl.desc = String(sanitizer.sanitize(data.reasson));
+                    rss_add_project_update('[STATE UPDATE] ' + project_doc.tile, project_doc.current_next_step.desc, hostname + 'project?id=' + String(project_doc.project_id));
                     return;
                 });
 
@@ -1434,9 +1442,72 @@ io.on('connection', (socket) => {
 
 
 
+//RSS FEDD SETUP
+var rss_feed = new RSS({
+    title: 'ProjectBoxManagerFeed',
+    description: 'The Project update feed for the ProjectBoxManager',
+    feed_url: hostname+'rss.xml',
+    site_url: hostname,
+    image_url: hostname + 'img/np_project_564791_000000.png',
+    docs: hostname,
+    managingEditor: 'ProjectBoxManager Administrator',
+    webMaster: 'ProjectBoxManager Administrator',
+    copyright: 'Marcel Ochsendorf | RBEGamer | RBEPrinter',
+    language: 'en',
+    categories: ['Project Updates', 'Part Updates'],
+    pubDate: Math.round(new Date().getTime() / 1000),
+    ttl: '1',
+});
+
+var rss_xml_feed = rss_feed.xml();
+
+app.get('/feed.xml', function (req, res) {
+    res.send(rss_xml_feed);
+});
+
+function rss_add_project_update(_title, _desc, _url, _pid){
+    rss_feed.item({
+        title: _title,
+        description: _desc,
+        url: _url, // link to the item
+
+        author: 'ProjectBoxManager Administrator', // optional - defaults to feed author property
+        date: Math.round(new Date().getTime() / 1000), // any format that js Date can parse.
+
+
+        categories: [
+            String(_pid),
+            _title
+        ]
+    });
+
+    rss_xml_feed = rss_feed.xml();
+}
+/* loop over data and add to feed */
+
+
+// cache the xml to send to clients
+
+
 
 //INVENTUR CRONJOB ALL 2 HOURS
 cron.schedule('* 0-23 * * *', function () {
+    feed.item({
+        title: 'PROJECT ACTRION REQUIRED',
+        description: 'Hello JOHN, plese work next on this project',
+        url: 'http://127.0.0.1:3000/', // link to the item
+
+        author: 'PBM', // optional - defaults to feed author property
+        date: 'May 27, 2012', // any format that js Date can parse.
+
+
+        custom_elements: [
+            { 'itunes:duration': '7:04' }
+        ]
+    });
+
+    // cache the xml to send to clients
+     xml = feed.xml();
     console.log('running inventur task');
     //1st hole alle parts
     var q = {
