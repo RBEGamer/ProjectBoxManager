@@ -1,0 +1,29 @@
+version: '3.3'
+services:
+  pbm_webui:
+    build: .
+    container_name: pbm_webui
+    ports:
+     - "3000:3000"
+    volumes:
+     - ./webmanagement_tool:/app
+    links:
+      - "pbm_db:pbm_db"
+    depends_on:
+      - "pbm_db"
+    networks:
+      - samplenet
+
+  pbm_db:
+    image: "couchdb"
+    container_name: pbm_db
+    ports:
+    -  "5984:5984"
+    networks:
+      samplenet:
+        aliases:
+          - "pbm_db"
+
+networks:
+  samplenet:
+    driver: bridge

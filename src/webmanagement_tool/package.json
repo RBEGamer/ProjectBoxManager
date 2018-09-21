@@ -1,8 +1,9 @@
 {
-  "name": "webmanagement_tool",
+  "name": "pbm_webui",
   "version": "1.0.0",
   "description": "Webinterface for the box manager",
   "main": "server.js",
+  "start": "node server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
